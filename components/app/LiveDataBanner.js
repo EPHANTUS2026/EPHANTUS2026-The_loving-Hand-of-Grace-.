@@ -1,0 +1,2 @@
+import {CircleStackIcon} from '@heroicons/react/24/outline';
+export default function LiveDataBanner(){return <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"><CircleStackIcon className="mt-0.5 h-5 w-5 shrink-0"/><div><b>Live operational data</b><span className="ml-2 text-emerald-800">This screen reads persisted Supabase records. Changes are written through authenticated server routes and auditable GraceFlow transitions.</span></div></div>}

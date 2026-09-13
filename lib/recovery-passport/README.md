@@ -1,2 +1,0 @@
-# My Recovery Passport
-Private client-facing longitudinal recovery projection. The browser never supplies a client ID; authenticated profile linkage determines ownership. Only explicitly client-visible/approved source data is projected. Raw clinical context, risks and private operational notes are excluded. Grace may interpret verified Passport facts but must never invent milestones, diagnose, prescribe, determine discharge readiness or predict recovery. Private reflections default to PRIVATE_TO_ME and are not copied into GraceFlow metadata or analytics.
