@@ -1,1 +1,0 @@
-export default function StatusBadge({children,tone='neutral'}){const c={neutral:'bg-slate-100 text-slate-700',good:'bg-emerald-50 text-emerald-700',warn:'bg-amber-50 text-amber-700',danger:'bg-rose-50 text-rose-700',info:'bg-sky-50 text-sky-700'}[tone];return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${c}`}>{children}</span>}

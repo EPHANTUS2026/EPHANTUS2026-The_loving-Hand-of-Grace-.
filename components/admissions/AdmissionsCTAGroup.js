@@ -1,3 +1,0 @@
-import Link from 'next/link';
-import {CalendarDaysIcon,SparklesIcon} from '@heroicons/react/24/outline';
-export default function AdmissionsCTAGroup(){return <div className="grid gap-3 sm:flex sm:flex-wrap"><Link href="/book-assessment" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-grace-500 px-6 py-3 font-bold text-white"><CalendarDaysIcon className="h-5 w-5"/>Book a Confidential Assessment</Link><Link href="/grace?intent=admissions-guidance" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-grace-200 px-6 py-3 font-bold"><SparklesIcon className="h-5 w-5"/>Talk to Grace first</Link></div>}
