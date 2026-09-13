@@ -10,7 +10,7 @@ export async function POST(req){
     const sentiment=String(body?.sentiment||'');
     const reason=String(body?.reason||'').slice(0,80);
     if(!sentiments.has(sentiment)||!reasons.has(reason)) return NextResponse.json({error:'Invalid feedback.'},{status:400});
-    const session=await getSession().catch(()=>null);
+    const session=await getSession();
     const rows=await dbInsert('grace_response_feedback',{
       user_id:session?.user?.id||null,
       sentiment,
