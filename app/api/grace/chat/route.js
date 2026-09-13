@@ -1,15 +1,4 @@
-import { NextResponse } from 'next/server';
-import { orchestrateGrace } from '@/lib/grace/orchestrator';
-
-export async function POST(req){
-  try {
-    const body=await req.json();
-    const message=String(body?.message||'').trim();
-    if(!message) return NextResponse.json({error:'Message is required.'},{status:400});
-    if(message.length>4000) return NextResponse.json({error:'Message is too long.'},{status:400});
-    const result=orchestrateGrace({message,context:body?.context||'visitor'});
-    return NextResponse.json(result);
-  } catch {
-    return NextResponse.json({error:'Grace could not process that request safely.'},{status:500});
-  }
-}
+import {NextResponse} from 'next/server';import {orchestrateGrace} from '@/lib/grace/orchestrator';import {getSession} from '@/lib/supabase-rest';import {getRecoveryPassport} from '@/lib/recovery-passport/service';
+const passportTopic=b=>String(b?.topic||'').toLowerCase()==='recovery-passport'||/my (recovery|aftercare|passport|milestone|goal|appointment|journey)/i.test(String(b?.message||''));
+function passportAnswer(message,p){const m=message.toLowerCase();if(/stage|where.*journey|journey/.test(m))return p.currentStage?`Your verified Recovery Passport currently shows ${p.currentStage.label}. ${p.currentStage.description||''}`:'Your Recovery Passport does not yet show a verified current stage.';if(/milestone|progress/.test(m))return p.milestones?.length?`Your Passport shows ${p.milestones.length} client-approved milestone${p.milestones.length===1?'':'s'}. The most recent is “${p.milestones[0].title}”.`:'No client-approved milestones are showing in your Passport yet.';if(/goal/.test(m))return p.goals?.length?`Your Passport currently shows ${p.goals.length} client-visible goal${p.goals.length===1?'':'s'}, including “${p.goals[0].title}”.`:'No client-visible goals are showing in your Passport yet.';if(/appointment|next/.test(m))return p.appointments?.length?`Your Passport shows ${p.appointments.length} client-visible upcoming appointment${p.appointments.length===1?'':'s'}. The next recorded item is “${p.appointments[0].title||p.appointments[0].appointment_type}”.`:'No client-visible upcoming appointment is showing in your Passport.';return p.currentStage?`I can explain your verified Passport information. Your current recorded stage is ${p.currentStage.label}. I can also explain your client-visible milestones, goals, appointments, documents, or aftercare status.`:'I can explain your Recovery Passport, but I do not have a verified current stage to quote yet.';}
+export async function POST(req){try{const b=await req.json(),message=String(b?.message||'').trim();if(!message)return NextResponse.json({error:'Message is required.'},{status:400});if(message.length>4000)return NextResponse.json({error:'Message is too long.'},{status:400});if(passportTopic(b)){const s=await getSession().catch(()=>null);if(s?.profile?.role==='client'&&s?.profile?.client_id){const p=await getRecoveryPassport(s);const base=orchestrateGrace({message,context:'client'});return NextResponse.json({...base,state:'VERIFIED',answer:passportAnswer(message,p),sources:[{id:'recovery-passport',title:'My Recovery Passport',type:'authenticated_client_projection'}],provenance:{knowledgeState:'VERIFIED_CLIENT_DATA',sourceCount:1,toolConfirmationState:'NONE'},disclosure:{label:'Grace is explaining verified, client-visible information from your Recovery Passport.',learnMore:true}},{headers:{'Cache-Control':'private, no-store'}})}}return NextResponse.json(orchestrateGrace({message,context:b?.context||'visitor'}))}catch{return NextResponse.json({error:'Grace could not process that request safely.'},{status:500})}}
