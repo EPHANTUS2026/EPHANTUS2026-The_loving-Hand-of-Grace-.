@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon, PhoneIcon } from '@heroicons/react/24/outline';
 
-const links = [['About','/about'],['Treatment','/programs'],['Recovery Journey','/recovery-journey'],['Families','/family'],['Life at Grace','/life-at-grace'],['Knowledge','/knowledge'],['Contact','/contact'],['Ask Grace','/grace'],['Staff Portal','/staff']];
+const links = [['About','/about'],['Treatment','/programs'],['Recovery Journey','/recovery-journey'],['Families','/family'],['Life at Grace','/life-at-grace'],['Knowledge','/knowledge'],['Contact','/contact'],['My Space','/portal']];
 
 export default function Header(){
   const [open,setOpen]=useState(false);
