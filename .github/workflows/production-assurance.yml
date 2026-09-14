@@ -20,9 +20,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
+          node-version: 24
+      - name: Verify required staging secrets are configured
+        shell: bash
+        run: |
+          missing=0
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STAGING_TEST_PASSWORD STAGING_BASE_URL; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=Missing GitHub Actions secret::$name is not configured for Production Assurance"
+              missing=1
+            fi
+          done
+          exit "$missing"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
       - name: Production verification gate
         run: npm run verify:production
       - name: Staging security and transaction certification
