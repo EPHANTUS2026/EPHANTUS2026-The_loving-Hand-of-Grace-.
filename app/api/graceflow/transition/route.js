@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSession, dbSelect, dbUpdate, dbInsert } from '@/lib/supabase-rest';
-const allowedRoles=['counsellor','clinician','admissions','administrator','super_admin'];
+const clinicalRoles=['clinician','clinical_director','doctor','psychologist'];
+const allowedRoles=['counsellor',...clinicalRoles,'admissions','administrator','super_admin'];
 const next={enquiry:['screening'],screening:['assessment'],assessment:['admission_ready'],admission_ready:['admitted'],admitted:['treatment'],treatment:['discharge'],discharge:['aftercare'],aftercare:['closed']};
-const transitionRoles={screening:['admissions','counsellor','clinician','administrator','super_admin'],assessment:['admissions','clinician','administrator','super_admin'],admission_ready:['admissions','clinician','administrator','super_admin'],admitted:['admissions','clinician','administrator','super_admin'],treatment:['counsellor','clinician','administrator','super_admin'],discharge:['clinician','administrator','super_admin'],aftercare:['clinician','administrator','super_admin'],closed:['clinician','administrator','super_admin']};
+const transitionRoles={screening:['admissions','counsellor',...clinicalRoles,'administrator','super_admin'],assessment:['admissions',...clinicalRoles,'administrator','super_admin'],admission_ready:['admissions',...clinicalRoles,'administrator','super_admin'],admitted:['admissions',...clinicalRoles,'administrator','super_admin'],treatment:['counsellor',...clinicalRoles,'administrator','super_admin'],discharge:[...clinicalRoles,'administrator','super_admin'],aftercare:[...clinicalRoles,'administrator','super_admin'],closed:[...clinicalRoles,'administrator','super_admin']};
 const taskFor={
  screening:{type:'admissions_screening',title:'Complete screening summary',role:'admissions'},
  assessment:{type:'admissions_assessment',title:'Complete assessment and programme recommendation',role:'clinician'},
