@@ -36,6 +36,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Production verification gate
         run: npm run verify:production
+      - name: Synchronize synthetic staging identities
+        run: npm run staging:create-users
       - name: Staging security and transaction certification
         run: npm run staging:release-gate
       - name: Production build
