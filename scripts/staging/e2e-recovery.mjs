@@ -68,13 +68,24 @@ await postForm(`/api/operations/sessions/${session.id}`, counsellorToken, {
   client_id:clientId, status:'completed', attendance_note:'Synthetic attendance complete.', clinical_note:'Synthetic clinical note for staging validation only.', client_summary:'Synthetic session completed.', next_step:'Prepare for discharge readiness review.'
 }, 'Session completed');
 
+// Preserve the clinical governance boundary: counsellors prepare discharge plans,
+// but an authorised clinical role must approve them before the lifecycle may
+// transition from treatment to discharge.
 await postForm('/api/operations/discharge', counsellorToken, {
   client_id:clientId, care_plan_id:carePlan.id, status:'ready_for_review', readiness_summary:'Synthetic readiness review.', housing_or_environment_plan:'Synthetic stable environment.', recovery_support_plan:'Synthetic support plan.', warning_signs_plan:'Synthetic warning signs plan.', emergency_support_plan:'Use configured emergency and care-team routes.', follow_up_requirements:'Synthetic aftercare follow-up.'
-}, 'Discharge plan prepared');
-await transition(clinicianToken, admission.id, 'discharge', 'Treatment → discharge');
+}, 'Discharge plan prepared for clinical review');
+const reviewPlan = (await restSelect('discharge_plans',`client_id=eq.${clientId}&select=id,status&limit=1`))?.[0];
+if (!reviewPlan || reviewPlan.status !== 'ready_for_review') throw new Error(`Discharge review gate was not persisted (status=${reviewPlan?.status || 'missing'}).`);
+console.log('✓ Discharge review gate persisted');
+
 await postForm('/api/operations/discharge', clinicianToken, {
   client_id:clientId, care_plan_id:carePlan.id, status:'approved', readiness_summary:'Synthetic discharge approved by staging clinical role.', housing_or_environment_plan:'Synthetic stable environment.', recovery_support_plan:'Synthetic support plan.', warning_signs_plan:'Synthetic warning signs plan.', emergency_support_plan:'Use configured emergency and care-team routes.', follow_up_requirements:'48-hour, 7-day and 30-day synthetic follow-ups.'
-}, 'Discharge approved');
+}, 'Discharge approved by clinical role');
+const approvedDischarge = (await restSelect('discharge_plans',`client_id=eq.${clientId}&select=id,status&limit=1`))?.[0];
+if (!approvedDischarge || approvedDischarge.status !== 'approved') throw new Error(`Clinical discharge approval was not persisted (status=${approvedDischarge?.status || 'missing'}).`);
+console.log('✓ Clinical discharge approval persisted');
+
+await transition(clinicianToken, admission.id, 'discharge', 'Treatment → discharge');
 const discharge = (await restSelect('discharge_plans',`client_id=eq.${clientId}&select=*&limit=1`))?.[0];
 
 const nextReview = new Date(Date.now()+2*86400000).toISOString().slice(0,16);
