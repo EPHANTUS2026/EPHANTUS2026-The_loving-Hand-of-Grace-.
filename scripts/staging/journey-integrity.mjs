@@ -1,9 +1,9 @@
-import { appFetch, authToken, expectStatus, restSelect, restInsert, restUpdate, requireEnv, syntheticId } from './lib.mjs';
+import { appFetch, authToken, expectStatus, restSelect, restInsert, restUpdate, requireEnv, syntheticId, supabaseConfig } from './lib.mjs';
 
 requireEnv(['STAGING_TEST_PASSWORD']);
 const password=process.env.STAGING_TEST_PASSWORD, domain=process.env.STAGING_TEST_EMAIL_DOMAIN||'example.test', prefix=process.env.STAGING_TEST_EMAIL_PREFIX||'lhg-stage';
 const tokenFor=(r)=>authToken(`${prefix}+${r.replaceAll('_','-')}@${domain}`,password);
-const transition=(token,id,to,from)=>appFetch('/api/graceflow/transition',{token,method:'POST',json:{admissionId:id,to,from,reason:'Synthetic journey integrity certification'}});
+const transition=async(token,id,to,from)=>{ const {baseUrl,anonKey}=supabaseConfig(); const res=await fetch(`${baseUrl}/rest/v1/rpc/transition_recovery_journey`,{method:'POST',headers:{apikey:anonKey,Authorization:`Bearer ${token||anonKey}`,'Content-Type':'application/json'},body:JSON.stringify({p_admission_id:id,p_to:to,p_expected_from:from,p_reason:'Synthetic journey integrity certification'})}); const text=await res.text(); let body=text; try{body=text?JSON.parse(text):null}catch{} return {res,body,text}; };
 const mustDeny=(r,label)=>{if(r.res.status<400)throw new Error(`${label} unexpectedly succeeded (${r.res.status})`);};
 const makeAdmission=async(stage='enquiry',extra={})=>(await restInsert('admissions',{reference:syntheticId('JOURNEY'),enquiry_name:'Synthetic Journey Integrity',source:'staging-certification',stage,...extra}))[0];
 
