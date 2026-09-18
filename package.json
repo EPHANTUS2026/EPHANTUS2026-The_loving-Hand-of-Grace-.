@@ -20,12 +20,13 @@
     "staging:booking-transactions": "node scripts/staging/booking-transaction-tests.mjs",
     "staging:booking-race": "node scripts/staging/booking-parallel-race.mjs",
     "staging:client-isolation": "node scripts/staging/client-isolation.mjs",
-    "staging:release-gate": "npm run staging:client-isolation && npm run staging:identity-authority && npm run staging:rpc-boundaries && npm run staging:booking-transactions && npm run staging:booking-race && npm run staging:e2e",
+    "staging:release-gate": "npm run staging:client-isolation && npm run staging:identity-authority && npm run staging:rpc-boundaries && npm run staging:booking-transactions && npm run staging:booking-race && npm run staging:journey-integrity && npm run staging:e2e",
     "staging:provider-smoke": "node scripts/staging/provider-smoke.mjs",
     "staging:scheduler-smoke": "node scripts/staging/scheduler-smoke.mjs",
     "staging:e2e": "node scripts/staging/e2e-recovery.mjs",
     "staging:rpc-boundaries": "node scripts/staging/public-rpc-boundaries.mjs",
-    "staging:identity-authority": "node scripts/staging/identity-authority-matrix.mjs"
+    "staging:identity-authority": "node scripts/staging/identity-authority-matrix.mjs",
+    "staging:journey-integrity": "node scripts/staging/journey-integrity.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
