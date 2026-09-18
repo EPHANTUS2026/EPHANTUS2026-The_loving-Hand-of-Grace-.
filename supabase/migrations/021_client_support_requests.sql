@@ -21,9 +21,9 @@ begin
  insert into public.client_support_requests(client_id,request_type,subject,details)
  values(v_client,p_request_type,trim(p_subject),nullif(trim(coalesce(p_details,'')),''))
  returning * into v_row;
- insert into public.audit_log(actor_id,action,resource_type,resource_id,metadata)
- select p.id,'CLIENT_SUPPORT_REQUEST_CREATED','client_support_request',v_row.id,jsonb_build_object('client_id',v_client,'request_type',p_request_type)
- from public.profiles p where p.auth_user_id=auth.uid() limit 1;
+ insert into public.audit_log(actor_auth_user_id,actor_profile_id,action,entity_type,entity_id,after_state,reason)
+ select auth.uid(),p.id,'CLIENT_SUPPORT_REQUEST_CREATED','client_support_request',v_row.id,jsonb_build_object('client_id',v_client,'request_type',p_request_type,'status',v_row.status),'Client requested support'
+ from public.profiles p where p.auth_user_id=auth.uid() and p.is_active=true limit 1;
  return v_row;
 end$$;
 revoke all on function public.create_client_support_request(text,text,text) from public;
