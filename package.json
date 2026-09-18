@@ -27,7 +27,12 @@
     "staging:rpc-boundaries": "node scripts/staging/public-rpc-boundaries.mjs",
     "staging:identity-authority": "node scripts/staging/identity-authority-matrix.mjs",
     "staging:journey-integrity": "node scripts/staging/journey-integrity.mjs",
-    "staging:journey-direct-write": "node scripts/staging/journey-direct-write-bypass.mjs"
+    "staging:journey-direct-write": "node scripts/staging/journey-direct-write-bypass.mjs",
+    "staging:staff-relationship-authority": "node scripts/staging/staff-support-relationship-authority.mjs",
+    "staging:family-consent-authority": "node scripts/staging/family-consent-authority.mjs",
+    "staging:client-welfare-isolation": "node scripts/staging/client-welfare-isolation.mjs",
+    "staging:client-support-authority": "node scripts/staging/client-support-request-authority.mjs",
+    "staging:client-support-graceflow": "node scripts/staging/client-support-graceflow.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
