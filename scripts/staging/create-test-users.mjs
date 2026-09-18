@@ -1,7 +1,30 @@
-import { createAuthUser, restInsert, restSelect, adminFetch, requireEnv } from './lib.mjs';
+import { createAuthUser, restInsert, restSelect, restUpdate, adminFetch, requireEnv } from './lib.mjs';
 requireEnv(['STAGING_TEST_PASSWORD']);
 const password=process.env.STAGING_TEST_PASSWORD,domain=process.env.STAGING_TEST_EMAIL_DOMAIN||'example.test',prefix=process.env.STAGING_TEST_EMAIL_PREFIX||'lhg-stage';
 const roles=[['super_admin','Staging Super Admin','Platform Administration','Administration'],['director','Staging Director','Centre Director','Management'],['clinical_director','Staging Clinical Director','Clinical Director','Clinical'],['clinician','Staging Clinician','Clinician','Clinical'],['doctor','Staging Doctor','Doctor','Clinical'],['nurse','Staging Nurse','Nurse','Clinical'],['psychologist','Staging Psychologist','Psychologist','Clinical'],['counsellor','Staging Counsellor','Counsellor','Clinical'],['social_worker','Staging Social Worker','Social Worker','Clinical'],['case_manager','Staging Case Manager','Case Manager','Clinical'],['aftercare_coordinator','Staging Aftercare Coordinator','Aftercare Coordinator','Aftercare'],['family_liaison','Staging Family Liaison','Family Liaison','Family Services'],['admissions','Staging Admissions','Admissions Officer','Admissions'],['finance','Staging Finance','Finance Officer','Finance'],['hr','Staging HR','HR Officer','People'],['procurement','Staging Procurement','Procurement Officer','Resources'],['inventory','Staging Inventory','Inventory Officer','Resources'],['project_manager','Staging Project Manager','Project Manager','Operations'],['helpdesk','Staging Helpdesk','Helpdesk Officer','Operations'],['marketing','Staging Marketing','Marketing Officer','Growth'],['accountant','Staging Accountant','Accountant','Finance'],['field_service','Staging Field Service','Field Service Officer','Operations'],['staff','Staging Staff','Staff Member','General']];
 for(const [role,fullName,jobTitle,department] of roles){const email=`${prefix}+${role.replaceAll('_','-')}@${domain}`;const existing=await restSelect('profiles',`role=eq.${encodeURIComponent(role)}&full_name=eq.${encodeURIComponent(fullName)}&select=id`);if(existing?.length)continue;let user;try{user=await createAuthUser({email,password,fullName})}catch(e){if(String(e.message).includes('already been registered'))continue;throw e}const staffCode=`STG-${role.toUpperCase().replaceAll('_','-').slice(0,18)}`;let sr=await restSelect('staff',`staff_code=eq.${encodeURIComponent(staffCode)}&select=id`);const staff=sr?.[0]||(await restInsert('staff',{staff_code:staffCode,full_name:fullName,job_title:jobTitle,department,active:true}))?.[0];await restInsert('profiles',{auth_user_id:user.id,full_name:fullName,role,is_active:true,staff_id:staff.id});}
 for(const suffix of ['a','b']){const email=`${prefix}+client-${suffix}@${domain}`,fullName=`Synthetic Client ${suffix.toUpperCase()}`,clientCode=`STG-CLIENT-${suffix.toUpperCase()}`;let profile=(await restSelect('profiles',`role=eq.client&full_name=eq.${encodeURIComponent(fullName)}&select=id,auth_user_id,client_id`))?.[0];if(profile){await adminFetch(`/auth/v1/admin/users/${profile.auth_user_id}`,{method:'PUT',body:JSON.stringify({password,email_confirm:true,user_metadata:{full_name:fullName,staging:true}})});if(!profile.client_id)throw new Error(`${fullName} exists but is not linked to a client record`);continue;}let client=(await restSelect('clients',`client_code=eq.${clientCode}&select=id`))?.[0];if(!client)client=(await restInsert('clients',{client_code:clientCode,legal_name:`${fullName.toUpperCase()} — NOT A REAL PERSON`,preferred_name:`Client ${suffix.toUpperCase()}`,email,status:'active',preferred_language:'English'}))?.[0];let user;try{user=await createAuthUser({email,password,fullName})}catch(e){throw new Error(`${email} exists in Auth without the expected linked profile; repair explicitly before certification`)}await restInsert('profiles',{auth_user_id:user.id,full_name:fullName,role:'client',is_active:true,client_id:client.id});}
-console.log('Staging staff and synthetic Client A/B identities are provisioned. Password was read from STAGING_TEST_PASSWORD and was not printed.');
+
+const clientProfiles=await restSelect('profiles','role=eq.client&full_name=in.(Synthetic%20Client%20A,Synthetic%20Client%20B)&select=client_id,full_name');
+const clientA=clientProfiles.find(p=>p.full_name==='Synthetic Client A'),clientB=clientProfiles.find(p=>p.full_name==='Synthetic Client B');
+if(!clientA?.client_id||!clientB?.client_id)throw new Error('Synthetic Client A/B must exist before family provisioning');
+const familySpecs=[
+ ['family-a','Synthetic Family A',clientA.client_id,true],
+ ['family-b','Synthetic Family B',clientB.client_id,true],
+ ['family-revoked','Synthetic Family Revoked',clientA.client_id,false]
+];
+for(const [suffix,fullName,clientId,consentActive] of familySpecs){
+ const email=`${prefix}+${suffix}@${domain}`;
+ let profile=(await restSelect('profiles',`role=eq.family&full_name=eq.${encodeURIComponent(fullName)}&select=id,auth_user_id,family_member_id`))?.[0];
+ if(profile){
+   await adminFetch(`/auth/v1/admin/users/${profile.auth_user_id}`,{method:'PUT',body:JSON.stringify({password,email_confirm:true,user_metadata:{full_name:fullName,staging:true}})});
+   if(!profile.family_member_id)throw new Error(`${fullName} exists without family_member linkage`);
+   await restUpdate('family_members',`id=eq.${profile.family_member_id}`,{client_id:clientId,consent_active:consentActive,consent_scope:{synthetic:true,portal:true}});
+   continue;
+ }
+ let fm=(await restSelect('family_members',`email=eq.${encodeURIComponent(email)}&select=id`))?.[0];
+ if(!fm)fm=(await restInsert('family_members',{client_id:clientId,full_name:fullName,relationship:'Synthetic test relation',email,consent_active:consentActive,consent_scope:{synthetic:true,portal:true}}))?.[0];
+ let user;try{user=await createAuthUser({email,password,fullName})}catch(e){throw new Error(`${email} exists in Auth without expected family profile; repair explicitly before certification`)}
+ await restInsert('profiles',{auth_user_id:user.id,full_name:fullName,role:'family',is_active:true,family_member_id:fm.id});
+}
+console.log('Staging staff, Client A/B, Family A/B and revoked-consent family identities are provisioned. Password was read from STAGING_TEST_PASSWORD and was not printed.');
