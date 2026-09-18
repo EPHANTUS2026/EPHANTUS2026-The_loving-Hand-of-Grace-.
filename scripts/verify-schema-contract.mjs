@@ -12,7 +12,19 @@ const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!key){console.error('Schema verification requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');process.exit(1);}
 const PROBE_TIMEOUT_MS=10000;
-async function probeFetch(input,init={}){return fetch(input,{...init,signal:AbortSignal.timeout(PROBE_TIMEOUT_MS)});}
+const PROBE_RETRIES=2;
+async function probeFetch(input,init={}){
+  let lastError;
+  for(let attempt=0;attempt<=PROBE_RETRIES;attempt++){
+    try{
+      const response=await fetch(input,{...init,signal:AbortSignal.timeout(PROBE_TIMEOUT_MS)});
+      if(response.status!==502&&response.status!==503&&response.status!==504)return response;
+      lastError=new Error(`Supabase Data API transient HTTP ${response.status}`);
+    }catch(error){lastError=error;}
+    if(attempt<PROBE_RETRIES) await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+  }
+  throw lastError;
+}
 async function checkTable(name){try{const r=await probeFetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}catch(error){console.error(`Schema probe table ${name} failed: ${error.name||'Error'}`);return false;}}
 async function checkRpc({name,args}){
   try {
