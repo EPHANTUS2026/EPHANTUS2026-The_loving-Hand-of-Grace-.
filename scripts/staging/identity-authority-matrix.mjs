@@ -45,18 +45,21 @@ expectNoRows(await req(aToken,'care_plans',`client_id=eq.${A.client_id}&select=i
 expectNoRows(await req(aToken,'care_sessions',`client_id=eq.${A.client_id}&select=id,clinical_note`),'client -> clinical session note');
 expectNoRows(await req(bToken,'care_plans',`client_id=eq.${A.client_id}&select=id`),'Client B -> Client A clinical data');
 
-// 5 family authority matrix. Create synthetic linked/unrelated/revoked identities only if already provisioned.
-const families=await restSelect('profiles','role=eq.family&select=id,auth_user_id,family_member_id,full_name&order=created_at.asc');
-if(families.length>=2){
- const F=families[0],Other=families[1];
- const fm=(await restSelect('family_members',`id=eq.${F.family_member_id}&select=id,client_id,consent_active`))[0];
- const om=(await restSelect('family_members',`id=eq.${Other.family_member_id}&select=id,client_id`))[0];
- const slug=(n)=>n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
- const fToken=await authToken(email(slug(F.full_name)),password);
- expectNoRows(await req(fToken,'family_members',`id=eq.${Other.family_member_id}&select=id`),'family -> unrelated family');
- expectNoRows(await req(fToken,'clients',`id=eq.${om.client_id}&select=id`),'family -> unrelated client');
- if(fm.consent_active===false) expectNoRows(await req(fToken,'clients',`id=eq.${fm.client_id}&select=id`),'revoked family consent -> client');
-} else {
- console.log('INFO family matrix requires >=2 synthetic family identities; provisioning extension will enforce this in CI.');
-}
+// 5 mandatory family authority matrix.
+const families=await restSelect('profiles','role=eq.family&full_name=in.(Synthetic%20Family%20A,Synthetic%20Family%20B,Synthetic%20Family%20Revoked)&select=id,auth_user_id,family_member_id,full_name');
+assert.equal(families.length,3,'Family A/B/revoked synthetic identities are mandatory');
+const familyA=families.find(x=>x.full_name==='Synthetic Family A');
+const familyB=families.find(x=>x.full_name==='Synthetic Family B');
+const revoked=families.find(x=>x.full_name==='Synthetic Family Revoked');
+for(const x of [familyA,familyB,revoked])assert.ok(x?.family_member_id,`${x?.full_name||'family'} missing family_member linkage`);
+const fA=(await restSelect('family_members',`id=eq.${familyA.family_member_id}&select=id,client_id,consent_active`))[0];
+const fB=(await restSelect('family_members',`id=eq.${familyB.family_member_id}&select=id,client_id,consent_active`))[0];
+const fR=(await restSelect('family_members',`id=eq.${revoked.family_member_id}&select=id,client_id,consent_active`))[0];
+assert.equal(fA.consent_active,true);assert.equal(fB.consent_active,true);assert.equal(fR.consent_active,false);
+const fAToken=await authToken(email('family-a'),password),fBToken=await authToken(email('family-b'),password),revokedToken=await authToken(email('family-revoked'),password);
+expectNoRows(await req(fAToken,'family_members',`id=eq.${familyB.family_member_id}&select=id`),'Family A -> unrelated Family B');
+expectNoRows(await req(fAToken,'clients',`id=eq.${fB.client_id}&select=id`),'Family A -> unrelated Client B');
+expectNoRows(await req(fBToken,'clients',`id=eq.${fA.client_id}&select=id`),'Family B -> unrelated Client A');
+expectNoRows(await req(revokedToken,'clients',`id=eq.${fR.client_id}&select=id`),'revoked family consent -> linked client');
+expectNoRows(await req(revokedToken,'family_updates',`family_member_id=eq.${revoked.family_member_id}&select=id`),'revoked family consent -> family updates');
 console.log('Identity authority matrix PASS: anonymous, cross-client, client->staff, escalation/forgery and clinical isolation boundaries hold.');
