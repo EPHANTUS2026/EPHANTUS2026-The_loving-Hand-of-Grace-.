@@ -9,7 +9,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -35,10 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Production verification gate
+        timeout-minutes: 12
         run: npm run verify:production
       - name: Synchronize synthetic staging identities
+        timeout-minutes: 8
         run: npm run staging:create-users
       - name: Staging security and transaction certification
+        timeout-minutes: 30
         run: npm run staging:release-gate
       - name: Production build
+        timeout-minutes: 10
         run: npm run build

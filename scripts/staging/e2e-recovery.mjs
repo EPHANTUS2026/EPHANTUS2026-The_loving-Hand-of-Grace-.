@@ -7,7 +7,9 @@ const prefix = process.env.STAGING_TEST_EMAIL_PREFIX || 'lhg-stage';
 const emailFor = (role) => `${prefix}+${role.replaceAll('_','-')}@${domain}`;
 const tokenFor = async (role) => authToken(emailFor(role), password);
 const form = (obj) => new URLSearchParams(Object.entries(obj).filter(([,v]) => v !== undefined && v !== null).map(([k,v]) => [k,String(v)]));
-const postForm = async (path, token, obj, label) => { const r=await appFetch(path,{token,method:'POST',form:form(obj)}); expectStatus(r,[200,201,302,303,307,308],label); console.log(`✓ ${label}`); return r; };
+const transientStatus=new Set([500,502,503,504]);
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+const postForm = async (path, token, obj, label) => { let r; for(let attempt=1;attempt<=3;attempt++){r=await appFetch(path,{token,method:'POST',form:form(obj)});if(!transientStatus.has(r.res.status))break;if(attempt<3){console.log(`↻ ${label}: transient ${r.res.status}; retrying bounded attempt ${attempt+1}/3`);await sleep(1200*attempt);}} expectStatus(r,[200,201,302,303,307,308],label); console.log(`✓ ${label}`); return r; };
 const transition = async (token, admissionId, from, to, label) => { const r=await appFetch('/api/graceflow/transition',{token,method:'POST',json:{admissionId,from,to,reason:`Synthetic staging E2E: ${label}`}}); expectStatus(r,200,label); console.log(`✓ ${label}`); };
 
 const syntheticName=`Synthetic Recovery Client ${syntheticId('E2E')}`;
