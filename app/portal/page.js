@@ -10,7 +10,7 @@ export default async function Portal(){
  const checkins=linked?await dbSelect('grace_checkins',`client_id=eq.${encodeURIComponent(session.profile.client_id)}&select=id,mood_score,craving_level,coping_tool,created_at&order=created_at.desc&limit=14`,session.token).catch(()=>[]):[];
  return <>
    <section className="bg-[linear-gradient(180deg,#faf8ff_0%,#f7f8fc_100%)] px-4 pt-5 sm:px-6 lg:px-8">
-     <div className="mx-auto max-w-[1400px]">
+     <div className="mx-auto max-w-[1400px]"><Link href="/portal/my-journey" className="mb-4 flex items-center justify-between rounded-[28px] border border-grace-100 bg-white p-5 shadow-sm"><div><div className="text-xs font-black uppercase tracking-[.18em] text-grace-700">My Space · Private</div><h1 className="mt-2 text-2xl font-black">My Journey</h1><p className="mt-1 text-sm text-slate-600">See what matters today and ask the Centre for support.</p></div><span className="font-bold text-grace-800">Open →</span></Link>
        <Link
          href="/portal/recovery-passport"
          className="group flex min-h-28 items-center justify-between gap-5 rounded-[28px] border border-violet-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-500 sm:p-6"
