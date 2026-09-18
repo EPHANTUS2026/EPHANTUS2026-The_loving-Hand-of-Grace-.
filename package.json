@@ -27,7 +27,8 @@
     "staging:rpc-boundaries": "node scripts/staging/public-rpc-boundaries.mjs",
     "staging:identity-authority": "node scripts/staging/identity-authority-matrix.mjs",
     "staging:journey-integrity": "node scripts/staging/journey-integrity.mjs",
-    "staging:journey-direct-write": "node scripts/staging/journey-direct-write-bypass.mjs"
+    "staging:journey-direct-write": "node scripts/staging/journey-direct-write-bypass.mjs",
+    "staging:deployment-identity": "node scripts/staging/verify-deployment-identity.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
