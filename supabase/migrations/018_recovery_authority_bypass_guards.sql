@@ -64,3 +64,5 @@ for each row execute function public.guard_audit_immutability();
 revoke execute on function public.guard_recovery_authority_columns() from public, anon, authenticated;
 revoke execute on function public.guard_recovery_task_authority() from public, anon, authenticated;
 revoke execute on function public.guard_audit_immutability() from public, anon, authenticated;
+
+-- Certification trigger: migration 018 is applied to staging; no semantic change.
