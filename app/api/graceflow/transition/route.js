@@ -14,6 +14,7 @@ export async function POST(req){
     reason=String(fd.get('reason')||''); returnTo=String(fd.get('returnTo')||'');
   } else {
     ({admissionId,to,from,reason,returnTo}=await req.json());
+    // Bind optimistic concurrency to the request as received; the database revalidates after row lock.
   }
   if(!admissionId||!to||!from) return NextResponse.json({error:'admissionId, from and to are required'},{status:400});
   const result=await rpc('transition_recovery_journey',{p_admission_id:admissionId,p_to:to,p_expected_from:from,p_reason:String(reason||'Approved workflow transition').slice(0,500)},s.token);
