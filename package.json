@@ -1,5 +1,40 @@
 {
-  "name":"the-loving-hand-of-grace","version":"1.0.0","private":true,
-  "scripts":{"dev":"next dev","build":"next build","start":"next start","lint":"next lint","check:imports":"node scripts/check-imports.mjs","grace:eval":"node --experimental-specifier-resolution=node scripts/grace-evals.mjs","verify:static":"node scripts/check-imports.mjs","verify:grace":"npm run grace:eval","verify:database":"node scripts/verify-schema-contract.mjs","verify:passport":"node scripts/verify-recovery-passport.mjs","verify:production":"npm run verify:static && npm run verify:grace && npm run verify:database && npm run verify:passport","verify":"npm run verify:production","staging:verify-schema":"node scripts/staging/verify-schema.mjs","staging:create-users":"node scripts/staging/create-test-users.mjs","staging:booking-transactions":"node scripts/staging/booking-transaction-tests.mjs","staging:booking-race":"node scripts/staging/booking-parallel-race.mjs","staging:client-isolation":"node scripts/staging/client-isolation.mjs","staging:release-gate":"npm run staging:client-isolation && npm run staging:booking-transactions && npm run staging:booking-race && npm run staging:e2e","staging:provider-smoke":"node scripts/staging/provider-smoke.mjs","staging:scheduler-smoke":"node scripts/staging/scheduler-smoke.mjs","staging:e2e":"node scripts/staging/e2e-recovery.mjs"},
-  "dependencies":{"@heroicons/react":"^2.2.0","next":"^14.2.25","react":"^18.3.1","react-dom":"^18.3.1"},"devDependencies":{"autoprefixer":"^10.4.20","postcss":"^8.4.49","tailwindcss":"^3.4.17"}
+  "name": "the-loving-hand-of-grace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "check:imports": "node scripts/check-imports.mjs",
+    "grace:eval": "node --experimental-specifier-resolution=node scripts/grace-evals.mjs",
+    "verify:static": "node scripts/check-imports.mjs",
+    "verify:grace": "npm run grace:eval",
+    "verify:database": "node scripts/verify-schema-contract.mjs",
+    "verify:passport": "node scripts/verify-recovery-passport.mjs",
+    "verify:production": "npm run verify:static && npm run verify:grace && npm run verify:database && npm run verify:passport",
+    "verify": "npm run verify:production",
+    "staging:verify-schema": "node scripts/staging/verify-schema.mjs",
+    "staging:create-users": "node scripts/staging/create-test-users.mjs",
+    "staging:booking-transactions": "node scripts/staging/booking-transaction-tests.mjs",
+    "staging:booking-race": "node scripts/staging/booking-parallel-race.mjs",
+    "staging:client-isolation": "node scripts/staging/client-isolation.mjs",
+    "staging:release-gate": "npm run staging:client-isolation && npm run staging:rpc-boundaries && npm run staging:booking-transactions && npm run staging:booking-race && npm run staging:e2e",
+    "staging:provider-smoke": "node scripts/staging/provider-smoke.mjs",
+    "staging:scheduler-smoke": "node scripts/staging/scheduler-smoke.mjs",
+    "staging:e2e": "node scripts/staging/e2e-recovery.mjs",
+    "staging:rpc-boundaries": "node scripts/staging/public-rpc-boundaries.mjs"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "next": "^14.2.25",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
 }
