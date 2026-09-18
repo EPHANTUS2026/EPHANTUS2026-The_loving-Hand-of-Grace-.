@@ -37,8 +37,9 @@ audits=await restSelect('audit_log',`entity_id=eq.${race.id}&action=eq.graceflow
 const flows=await restSelect('workflow_instances',`entity_type=eq.admission&entity_id=eq.${race.id}&select=id,current_state`); if(flows.length!==1||flows[0].current_state!=='screening')throw new Error('Concurrent transition produced inconsistent workflow state.');
 
 // Clinical discharge/aftercare boundary: aftercare requires approved_by + approved_at, not status text alone.
-const clientRow=(await restSelect('clients',`legal_name=ilike.${encodeURIComponent('SYNTHETIC%')}&select=id,legal_name`)).find(Boolean); if(!clientRow)throw new Error('Synthetic client fixture missing.');
-const existingDischarge=(await restSelect('discharge_plans',`client_id=eq.${clientRow.id}&select=id`))[0]; if(existingDischarge)throw new Error(`Selected synthetic client ${clientRow.id} already has a discharge plan; fixture must be isolated.`);
+const syntheticClients=await restSelect('clients',`legal_name=ilike.${encodeURIComponent('SYNTHETIC%')}&select=id,legal_name`); let clientRow=null;
+for(const candidate of syntheticClients){ const existing=(await restSelect('discharge_plans',`client_id=eq.${candidate.id}&select=id`))[0]; if(!existing){clientRow=candidate;break;} }
+if(!clientRow)throw new Error('No isolated synthetic client without discharge evidence is available for the clinical authority fixture.');
 let d=await makeAdmission('discharge',{client_id:clientRow.id});
 await restInsert('discharge_plans',{client_id:clientRow.id,status:'approved',readiness_summary:'Synthetic status-only approval'});
 await restInsert('aftercare_plans',{client_id:clientRow.id,status:'active'});
