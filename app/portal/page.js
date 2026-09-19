@@ -4,6 +4,7 @@ import {dbSelect} from '@/lib/supabase-rest';
 import GraceExperience from '@/components/grace/GraceExperience';
 
 export default async function Portal(){
+ const today=new Intl.DateTimeFormat('en-KE',{timeZone:'Africa/Nairobi',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
  const session=await requireSession(['client']);
  const name=session?.profile?.full_name?.split(' ')?.[0]||'there';
  const linked=Boolean(session.profile.client_id);
@@ -26,7 +27,7 @@ export default async function Portal(){
        </Link>
      </div>
    </section>
-   <section className="px-4 pt-5 sm:px-6 lg:px-8"><div className="mx-auto max-w-[1400px]"><div className="rounded-[28px] border border-grace-100 bg-white p-5 shadow-sm sm:p-6"><div className="text-xs font-black uppercase tracking-[.18em] text-grace-700">Daily Recovery</div><h2 className="mt-2 text-xl font-black text-slate-950">Just for Today</h2><p className="mt-1 text-sm text-slate-600">Today's NA recovery meditation is available from the official Narcotics Anonymous World Services resource.</p><a href="https://na.org/daily-meditations/jft/" target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-12 items-center rounded-full bg-grace-800 px-5 py-3 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-grace-500 focus:ring-offset-2" aria-label="Read today's Just for Today meditation on the Narcotics Anonymous World Services website — opens in a new tab">Read Today's Meditation →</a></div></div></section>
+   <section className="px-4 pt-5 sm:px-6 lg:px-8"><div className="mx-auto max-w-[1400px]"><div className="rounded-[28px] border border-grace-100 bg-white p-5 shadow-sm sm:p-6"><div className="text-xs font-black uppercase tracking-[.18em] text-grace-700">Daily Recovery · {today}</div><h2 className="mt-2 text-xl font-black text-slate-950">Just for Today</h2><p className="mt-1 text-sm text-slate-600">Open the official Narcotics Anonymous World Services page for the current published meditation and concept. NAWS controls its publication timing; Grace does not invent or replace an unpublished daily reading.</p><a href="https://na.org/daily-meditations/jft/" target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-12 items-center rounded-full bg-grace-800 px-5 py-3 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-grace-500 focus:ring-offset-2" aria-label="Read today's Just for Today meditation on the Narcotics Anonymous World Services website — opens in a new tab">Read Today's Meditation →</a></div></div></section>
    <GraceExperience name={name} clinicLinked={linked} initialCheckins={checkins||[]} authenticated/>
  </>;
 }
