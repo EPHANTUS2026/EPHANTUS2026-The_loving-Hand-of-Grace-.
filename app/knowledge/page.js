@@ -1,5 +1,6 @@
 import PageHero from '@/components/PageHero';
 import {dbAdminSelect} from '@/lib/supabase-rest';
+import DailyRecovery from '@/components/knowledge/DailyRecovery';
 
 const naMeetings=[
  ['Hakika NA Group','Tuesday, Thursday, Saturday','5:00 pm - 6:00 pm','KAG Church, Next to GPO Mtwapa'],
@@ -55,7 +56,7 @@ export default async function Page(){
  let rows=[];
  try{rows=await dbAdminSelect('knowledge_articles','approval_status=eq.APPROVED&archived=eq.false&select=id,title,summary,last_reviewed_at,next_review_at,version&order=updated_at.desc&limit=50')}catch{}
  return <><PageHero eyebrow="Knowledge" title="Reviewed information for recovery, families and care navigation." description="Recovery resources, peer-support meeting information and approved institutional knowledge. Meeting schedules can change; confirm with the relevant group before travelling."/>
- <section className="section"><div className="container-page space-y-10">
+ <section className="section"><div className="container-page space-y-12"><DailyRecovery/>
   <div><div className="mb-5"><div className="text-xs font-black uppercase tracking-[.16em] text-grace-700">Peer support · Narcotics Anonymous</div><h2 className="mt-2 text-2xl font-black text-slate-950">NA Meeting Schedule</h2><p className="mt-2 text-sm text-slate-600">Meeting groups, times and venues supplied to The Loving Hand of Grace. Please confirm meeting times with the relevant group before travelling, as schedules may change.</p></div><MeetingTable rows={naMeetings} kind="NA"/></div>
   <div><div className="mb-5"><div className="text-xs font-black uppercase tracking-[.16em] text-grace-700">Peer support · Alcoholics Anonymous</div><h2 className="mt-2 text-2xl font-black text-slate-950">AA Physical Meetings in Kenya</h2><p className="mt-2 text-sm text-slate-600">Physical meeting information reproduced from the supplied Kenya schedule. Some entries in the source do not include a meeting time and are therefore not presented as confirmed timed meetings here.</p></div><MeetingTable rows={aaMeetings} kind="AA"/><p className="mt-3 text-xs text-slate-500">AA source help lines: 0724 219570 · 0799458616 (Ladies) · 070557100 · 070570979</p></div>
   <div><h2 className="mb-4 text-2xl font-black text-slate-950">Approved Grace Knowledge</h2><div className="grid gap-4 md:grid-cols-2">{rows.length?rows.map(a=><article key={a.id} className="card"><div className="text-xs font-black uppercase tracking-[.14em] text-grace-700">Approved · v{a.version}</div><h3 className="mt-3 text-xl font-black">{a.title}</h3><p className="mt-3 text-sm leading-6 text-slate-600">{a.summary}</p><div className="mt-5 text-xs text-slate-400">Reviewed {a.last_reviewed_at?new Date(a.last_reviewed_at).toLocaleDateString('en-KE'):'—'}</div></article>):<div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-500 md:col-span-2">No additional approved public knowledge articles have been published yet.</div>}</div></div>
