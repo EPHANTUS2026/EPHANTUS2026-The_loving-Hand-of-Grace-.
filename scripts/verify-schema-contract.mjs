@@ -13,7 +13,7 @@ const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!key){console.error('Schema verification requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');process.exit(1);}
 const PROBE_TIMEOUT_MS=10000;
 async function probeFetch(input,init={}){return fetch(input,{...init,signal:AbortSignal.timeout(PROBE_TIMEOUT_MS)});}
-async function checkTable(name){try{const r=await probeFetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}catch(error){console.error(`Schema probe table ${name} failed: ${error.name||'Error'}`);return false;}}
+async function checkTable(name){try{const r=await probeFetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok){console.error(`Schema probe table ${name} HTTP ${r.status}: ${(await r.text()).slice(0,240)}`);}return r.ok;}catch(error){console.error(`Schema probe table ${name} failed: ${error.name||'Error'} ${error.message||''}`);return false;}}
 async function checkRpc({name,args}){
   try {
     const r=await probeFetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
