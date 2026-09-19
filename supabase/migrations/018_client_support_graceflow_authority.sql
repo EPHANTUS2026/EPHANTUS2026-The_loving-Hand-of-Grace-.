@@ -19,6 +19,7 @@ revoke insert,update,delete on public.client_support_request_events from anon,au
 grant select on public.client_support_requests,public.client_support_request_events to authenticated;
 
 drop function if exists public.create_client_support_request(text,text,text);
+drop function if exists public.transition_client_support_request(uuid,text,text,timestamptz);
 
 create or replace function public.create_client_support_request(p_request_type text,p_subject text,p_details text default null,p_priority text default 'NORMAL') returns uuid language plpgsql security definer set search_path='' as $$
 declare c uuid;p public.profiles;rid uuid;wid uuid;
