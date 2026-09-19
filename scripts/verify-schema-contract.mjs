@@ -11,9 +11,18 @@ const required={
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!key){console.error('Schema verification requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');process.exit(1);}
-async function checkTable(name){const r=await fetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}
+const REQUEST_TIMEOUT_MS=10000;
+async function request(resource,options={}){
+  try{
+    return await fetch(resource,{...options,signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)});
+  }catch(error){
+    const reason=error?.name==='TimeoutError'||error?.name==='AbortError'?'timed out':error?.message||'request failed';
+    throw new Error(`Schema contract request ${reason}: ${resource}`);
+  }
+}
+async function checkTable(name){const r=await request(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}
 async function checkRpc({name,args}){
-  const r=await fetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  const r=await request(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
   if(r.status!==404)return true;
   const text=await r.text();
   return !/Could not find the function|PGRST202|PGRST204/i.test(text);
