@@ -13,9 +13,9 @@ const team=[
     responsibilities:['Strategic leadership and governance','Organisational policy and quality oversight','Partnerships and stakeholder relations','Safeguarding culture and accountability']
   },
   {
-    role:'Manager',
+    role:'Clinical Coordinator',
     docket:'Facility Operations & Client Welfare',
-    profile:'Coordinates the day-to-day running of the facility so that programmes, people, spaces and support services work together safely and consistently. The Manager helps translate organisational standards into a dependable everyday recovery environment.',
+    profile:'Coordinates the day-to-day running of the facility so that programmes, people, spaces and support services work together safely and consistently. The Clinical Coordinator helps translate organisational standards into a dependable everyday recovery environment.',
     responsibilities:['Daily facility operations','Programme and staff coordination','Client welfare and service experience','Operational quality and escalation']
   },
   {
