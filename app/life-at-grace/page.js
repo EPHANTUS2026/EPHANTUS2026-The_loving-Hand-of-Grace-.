@@ -47,7 +47,7 @@ export default function Page(){
   </div></section>
 
   <section className="section"><div className="container-page">
-   <div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.16em] text-grace-700">Explore our spaces</div><h2 className="mt-3 text-3xl font-black text-slate-950">Spaces that support everyday recovery.</h2><p className="mt-3 text-sm leading-7 text-slate-600">Only approved and verified facility information should appear here. Facility photography and accessibility details can be introduced progressively after review.</p></div>
+   <div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.16em] text-grace-700">Explore our spaces</div><h2 className="mt-3 text-3xl font-black text-slate-950">Spaces that support everyday recovery.</h2></div>
    <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{spaces.map((space,i)=><article key={space.title} className="card h-full min-w-0 overflow-hidden"><div className="text-xs font-black uppercase tracking-[.16em] text-grace-700">Space {String(i+1).padStart(2,'0')}</div><h3 className="mt-4 break-words text-xl font-black leading-tight text-slate-950">{space.title}</h3><p className="mt-3 break-words text-sm leading-6 text-slate-600">{space.description}</p></article>)}</div>
   </div></section>
 
