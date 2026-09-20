@@ -22,10 +22,11 @@ export default function GraceResponseActions({
   const [paused,setPaused]=useState(false);
   const [speed,setSpeed]=useState(1);
   const [saved,setSaved]=useState(false);
+  const audioRef=useRef(null);
   const [status,setStatus]=useState('');
   const menuRef=useRef(null);
 
-  useEffect(()=>()=>{try{window.speechSynthesis?.cancel()}catch{}},[]);
+  useEffect(()=>()=>{try{window.speechSynthesis?.cancel()}catch{}try{audioRef.current?.pause()}catch{}},[]);
   useEffect(()=>{
     if(!menuOpen)return;
     function onKey(e){
@@ -54,7 +55,17 @@ export default function GraceResponseActions({
     return kenyaEnglish.find(v=>femaleHints.test(v.name))||kenyaEnglish[0]||english.find(v=>femaleHints.test(v.name))||english[0]||null;
   }
 
-  function startReading(){
+  async function startReading(){
+    try{
+      const response=await fetch('/api/grace/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+      if(response.ok&&String(response.headers.get('content-type')||'').startsWith('audio/')){
+        const blob=await response.blob(); const url=URL.createObjectURL(blob);
+        const audio=new Audio(url); audioRef.current=audio; audio.playbackRate=speed;
+        audio.onended=()=>{URL.revokeObjectURL(url);audioRef.current=null;setReading(false);setPaused(false)};
+        audio.onerror=()=>{URL.revokeObjectURL(url);audioRef.current=null;setReading(false);setPaused(false);setStatus('Read aloud stopped.')};
+        await audio.play(); setReading(true);setPaused(false);setStatus('Reading aloud · Grace Kenyan English voice'); return;
+      }
+    }catch{}
     if(!('speechSynthesis' in window)){setStatus('Read aloud is not available in this browser.');return;}
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
@@ -69,8 +80,8 @@ export default function GraceResponseActions({
     window.speechSynthesis.speak(u);
     setReading(true);setPaused(false);setStatus(voice?.lang?.toLowerCase()==='en-ke'?'Reading aloud · Kenyan English':'Reading aloud · warm English voice');
   }
-  function togglePause(){if(!reading)return startReading();if(paused){window.speechSynthesis.resume();setPaused(false);setStatus('Reading resumed')}else{window.speechSynthesis.pause();setPaused(true);setStatus('Reading paused')}}
-  function stopReading(){try{window.speechSynthesis.cancel()}catch{}setReading(false);setPaused(false);setStatus('Reading stopped')}
+  function togglePause(){if(!reading)return startReading();const a=audioRef.current;if(a){if(paused){a.play();setPaused(false);setStatus('Reading resumed')}else{a.pause();setPaused(true);setStatus('Reading paused')}return}if(paused){window.speechSynthesis.resume();setPaused(false);setStatus('Reading resumed')}else{window.speechSynthesis.pause();setPaused(true);setStatus('Reading paused')}}
+  function stopReading(){try{audioRef.current?.pause();audioRef.current=null}catch{}try{window.speechSynthesis.cancel()}catch{}setReading(false);setPaused(false);setStatus('Reading stopped')}
   function restartReading(){stopReading();setTimeout(startReading,0)}
 
   async function sendFeedback(sentiment,reason=''){
