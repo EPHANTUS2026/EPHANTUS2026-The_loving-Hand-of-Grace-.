@@ -3,6 +3,18 @@ import {NextResponse} from 'next/server';
 const MAX_CHARS=5000;
 const AZURE_VOICE='en-KE-AsiliaNeural';
 
+function normalizeSpeechText(value=''){
+  return String(value)
+    .replace(/\p{Extended_Pictographic}/gu,'')
+    .replace(/[\uFE0E\uFE0F\u200D]/g,'')
+    .replace(/[*_~`>#]/g,' ')
+    .replace(/https?:\/\/\S+/gi,'')
+    .replace(/\s+([,.;!?])/g,'$1')
+    .replace(/[ \t]{2,}/g,' ')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+
 function escapeXml(value=''){
   return value.replace(/[<>&'"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]));
 }
@@ -10,13 +22,15 @@ function escapeXml(value=''){
 export async function POST(req){
   const {text}=await req.json().catch(()=>({}));
   if(!text||typeof text!=='string')return NextResponse.json({error:'Text is required.'},{status:400});
-  if(text.length>MAX_CHARS)return NextResponse.json({error:'Text is too long for read aloud.'},{status:413});
+  const spokenText=normalizeSpeechText(text);
+  if(!spokenText)return NextResponse.json({error:'No readable text.'},{status:400});
+  if(spokenText.length>MAX_CHARS)return NextResponse.json({error:'Text is too long for read aloud.'},{status:413});
 
   const key=process.env.AZURE_SPEECH_KEY;
   const region=process.env.AZURE_SPEECH_REGION;
   if(!key||!region)return NextResponse.json({provider:false,fallback:'browser',voice:AZURE_VOICE},{status:503});
 
-  const ssml=`<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-KE"><voice name="${AZURE_VOICE}"><prosody rate="-8%" pitch="+1%" volume="-4%">${escapeXml(text)}</prosody></voice></speak>`;
+  const ssml=`<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-KE"><voice name="${AZURE_VOICE}"><prosody rate="-12%" pitch="0%" volume="-6%">${escapeXml(spokenText).replace(/\n\n/g,'<break time="650ms"/>').replace(/\n/g,'<break time="350ms"/>')}</prosody></voice></speak>`;
   try{
     const response=await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`,{
       method:'POST',
