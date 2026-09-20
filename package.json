@@ -10,7 +10,7 @@
     "check:imports": "node scripts/check-imports.mjs",
     "grace:eval": "node --experimental-specifier-resolution=node scripts/grace-evals.mjs",
     "verify:static": "node scripts/check-imports.mjs",
-    "verify:grace": "npm run grace:constitution && npm run grace:authority && npm run grace:adversarial && npm run grace:eval",
+    "verify:grace": "npm run grace:constitution && npm run grace:authority && npm run grace:adversarial && npm run grace:intelligence && npm run grace:eval",
     "verify:database": "node scripts/verify-schema-contract.mjs",
     "verify:passport": "node scripts/verify-recovery-passport.mjs",
     "verify:production": "npm run verify:static && npm run verify:grace && npm run verify:database && npm run verify:passport",
@@ -29,7 +29,8 @@
     "staging:journey-integrity": "node scripts/staging/journey-integrity.mjs",
     "grace:constitution": "node scripts/grace-constitutional-invariants.mjs",
     "grace:authority": "node scripts/grace-authority-invariants.mjs",
-    "grace:adversarial": "node scripts/grace-adversarial-evals.mjs"
+    "grace:adversarial": "node scripts/grace-adversarial-evals.mjs",
+    "grace:intelligence": "node scripts/grace-intelligence-evals.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
