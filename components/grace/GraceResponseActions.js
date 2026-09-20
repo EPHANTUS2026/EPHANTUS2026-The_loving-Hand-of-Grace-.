@@ -9,6 +9,18 @@ import {
 
 const feedbackReasons=['Incorrect','Not relevant','Hard to understand','Too long','Too short','Felt impersonal','Source problem','Potentially unsafe','Other'];
 
+function speechText(value=''){
+  return String(value)
+    .replace(/\p{Extended_Pictographic}/gu,'')
+    .replace(/[\uFE0E\uFE0F\u200D]/g,'')
+    .replace(/[*_~`>#]/g,' ')
+    .replace(/https?:\/\/\S+/gi,'')
+    .replace(/\s+([,.;!?])/g,'$1')
+    .replace(/[ \t]{2,}/g,' ')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+
 export default function GraceResponseActions({
   text='', sources=[], context='grace', onRegenerate=null, canRegenerate=false,
   onBranch=null, canBranch=false, authenticated=true
@@ -56,8 +68,10 @@ export default function GraceResponseActions({
   }
 
   async function startReading(){
+    const spokenText=speechText(text);
+    if(!spokenText){setStatus('There is no readable text in this response.');return;}
     try{
-      const response=await fetch('/api/grace/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+      const response=await fetch('/api/grace/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:spokenText})});
       if(response.ok&&String(response.headers.get('content-type')||'').startsWith('audio/')){
         const blob=await response.blob(); const url=URL.createObjectURL(blob);
         const audio=new Audio(url); audioRef.current=audio; audio.playbackRate=speed;
@@ -68,13 +82,13 @@ export default function GraceResponseActions({
     }catch{}
     if(!('speechSynthesis' in window)){setStatus('Read aloud is not available in this browser.');return;}
     window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
+    const u=new SpeechSynthesisUtterance(spokenText);
     const voice=selectGraceVoice();
     if(voice)u.voice=voice;
     u.lang=voice?.lang||'en-KE';
-    u.rate=Math.min(speed,1)*0.92;
-    u.pitch=1.04;
-    u.volume=0.92;
+    u.rate=Math.min(speed,1)*0.88;
+    u.pitch=1.0;
+    u.volume=0.88;
     u.onend=()=>{setReading(false);setPaused(false)};
     u.onerror=()=>{setReading(false);setPaused(false);setStatus('Read aloud stopped.')};
     window.speechSynthesis.speak(u);
