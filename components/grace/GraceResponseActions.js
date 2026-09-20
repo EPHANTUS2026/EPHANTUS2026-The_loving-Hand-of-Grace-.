@@ -46,15 +46,28 @@ export default function GraceResponseActions({
     try{await navigator.clipboard.writeText(text);setCopied(true);setStatus('Copied');setTimeout(()=>setCopied(false),1600)}catch{setStatus('Couldn’t copy this response.');}
   }
 
+  function selectGraceVoice(){
+    const voices=window.speechSynthesis?.getVoices?.()||[];
+    const kenyaEnglish=voices.filter(v=>/^en-KE$/i.test(v.lang));
+    const english=voices.filter(v=>/^en(?:-|$)/i.test(v.lang));
+    const femaleHints=/female|woman|zira|aria|samantha|victoria|karen|moira|fiona|serena|susan|hazel|sonia/i;
+    return kenyaEnglish.find(v=>femaleHints.test(v.name))||kenyaEnglish[0]||english.find(v=>femaleHints.test(v.name))||english[0]||null;
+  }
+
   function startReading(){
     if(!('speechSynthesis' in window)){setStatus('Read aloud is not available in this browser.');return;}
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.rate=speed;
+    const voice=selectGraceVoice();
+    if(voice)u.voice=voice;
+    u.lang=voice?.lang||'en-KE';
+    u.rate=Math.min(speed,1)*0.92;
+    u.pitch=1.04;
+    u.volume=0.92;
     u.onend=()=>{setReading(false);setPaused(false)};
     u.onerror=()=>{setReading(false);setPaused(false);setStatus('Read aloud stopped.')};
     window.speechSynthesis.speak(u);
-    setReading(true);setPaused(false);setStatus('Reading aloud');
+    setReading(true);setPaused(false);setStatus(voice?.lang?.toLowerCase()==='en-ke'?'Reading aloud · Kenyan English':'Reading aloud · warm English voice');
   }
   function togglePause(){if(!reading)return startReading();if(paused){window.speechSynthesis.resume();setPaused(false);setStatus('Reading resumed')}else{window.speechSynthesis.pause();setPaused(true);setStatus('Reading paused')}}
   function stopReading(){try{window.speechSynthesis.cancel()}catch{}setReading(false);setPaused(false);setStatus('Reading stopped')}
