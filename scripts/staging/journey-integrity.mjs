@@ -39,7 +39,10 @@ const flows=await restSelect('workflow_instances',`entity_type=eq.admission&enti
 // Clinical discharge/aftercare boundary: aftercare requires approved_by + approved_at, not status text alone.
 const syntheticClients=await restSelect('clients',`legal_name=ilike.${encodeURIComponent('SYNTHETIC%')}&select=id,legal_name`); let clientRow=null;
 for(const candidate of syntheticClients){ const existing=(await restSelect('discharge_plans',`client_id=eq.${candidate.id}&select=id`))[0]; if(!existing){clientRow=candidate;break;} }
-if(!clientRow)throw new Error('No isolated synthetic client without discharge evidence is available for the clinical authority fixture.');
+if(!clientRow){
+  const created=await restInsert('clients',{legal_name:`SYNTHETIC Journey Integrity ${syntheticId('CLIENT')}`,status:'active'});
+  clientRow=created[0];
+}
 let d=await makeAdmission('discharge',{client_id:clientRow.id});
 await restInsert('discharge_plans',{client_id:clientRow.id,status:'approved',readiness_summary:'Synthetic status-only approval'});
 await restInsert('aftercare_plans',{client_id:clientRow.id,status:'active'});

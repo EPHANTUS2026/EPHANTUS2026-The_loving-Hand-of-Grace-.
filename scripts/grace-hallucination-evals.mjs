@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';import {assessEvidence,truthPolicy,EVIDENCE_STATE} from '../lib/grace/truth-engine.js';import {qualityGate} from '../lib/grace/response-quality.js';
+const unknown=assessEvidence({sources:[],confidence:.3});assert.equal(unknown,EVIDENCE_STATE.UNKNOWN);assert.equal(truthPolicy({state:unknown}).mayAssert,false);
+for(const answer of ['You are diagnosed with addiction.','Your appointment is confirmed.','You are definitely cured.'])assert.equal(qualityGate({answer,evidenceState:'UNKNOWN',claimType:/diagnosed/.test(answer)?'clinical':'general',clinicalBoundary:false,confirmedAction:false}).result,'BLOCK_OR_REWRITE');
+assert.equal(assessEvidence({sources:[{id:'x'}],authoritative:true}),EVIDENCE_STATE.VERIFIED);
+console.log('Grace hallucination resistance evaluations: PASS');

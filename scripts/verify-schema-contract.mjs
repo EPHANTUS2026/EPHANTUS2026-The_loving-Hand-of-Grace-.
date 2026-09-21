@@ -11,7 +11,23 @@ const required={
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!key){console.error('Schema verification requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');process.exit(1);}
-async function checkTable(name){const r=await fetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}
+async function checkTable(name){
+  const endpoint=`${url}/rest/v1/${name}?select=*&limit=0`;
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      const r=await fetch(endpoint,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+      if(r.ok)return true;
+      const body=await r.text();
+      const transient=r.status>=500||/PGRST002|schema cache|Retrying/i.test(body);
+      if(!transient){console.error(`Schema probe failed for ${name}: HTTP ${r.status}`);return false;}
+      console.warn(`Transient Supabase/PostgREST failure for ${name} (attempt ${attempt}/3, HTTP ${r.status}).`);
+    }catch(e){
+      console.warn(`Schema probe transport failure for ${name} (attempt ${attempt}/3): ${e?.message||'unknown error'}`);
+    }
+    if(attempt<3)await new Promise(resolve=>setTimeout(resolve,attempt*1500));
+  }
+  return false;
+}
 async function checkRpc({name,args}){
   const r=await fetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
   if(r.status!==404)return true;
