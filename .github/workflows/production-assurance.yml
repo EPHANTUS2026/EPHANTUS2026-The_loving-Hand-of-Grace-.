@@ -17,8 +17,11 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
       STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      EXPECTED_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -26,13 +29,19 @@ jobs:
         shell: bash
         run: |
           missing=0
-          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STAGING_TEST_PASSWORD STAGING_BASE_URL; do
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STAGING_TEST_PASSWORD STAGING_BASE_URL EXPECTED_GIT_SHA; do
             if [ -z "${!name}" ]; then
-              echo "::error title=Missing GitHub Actions secret::$name is not configured for Production Assurance"
+              echo "::error title=Missing Production Assurance input::$name is not configured"
               missing=1
             fi
           done
           exit "$missing"
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: |
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$EXPECTED_GIT_SHA" || { echo "::error title=Candidate SHA mismatch::checkout=$actual expected=$EXPECTED_GIT_SHA"; exit 1; }
+          echo "Exact candidate checkout PASS: $actual"
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Production verification gate
@@ -40,6 +49,8 @@ jobs:
         run: npm run verify:production
       - name: Verify exact staging deployment identity
         timeout-minutes: 2
+        env:
+          GITHUB_SHA: ${{ env.EXPECTED_GIT_SHA }}
         run: npm run staging:deployment-identity
       - name: Synchronize synthetic staging identities
         timeout-minutes: 8
