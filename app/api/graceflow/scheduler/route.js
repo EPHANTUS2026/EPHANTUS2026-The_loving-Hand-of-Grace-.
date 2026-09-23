@@ -1,16 +1,13 @@
 import {NextResponse} from 'next/server';
-import {dbInsert,dbUpdate,dbAdminSelect} from '@/lib/supabase-rest';
+import {dbInsert,dbUpdate,rpcAdmin} from '@/lib/supabase-rest';
 import {processEngineTick} from '@/lib/graceflow-automation';
 import {processNotificationOutbox} from '@/lib/notification-delivery';
 import {expireStaleKnowledge} from '@/lib/knowledge-governance';
 import {recordSystemEvent,requestId} from '@/lib/observability';
 
 async function acquireLease(holder){
- const now=Date.now(); const rows=await dbAdminSelect('graceflow_engine_leases','lease_key=eq.main&select=*&limit=1').catch(()=>[]); const lease=rows?.[0];
- if(lease&&new Date(lease.expires_at).getTime()>now)return false;
- if(lease)await dbUpdate('graceflow_engine_leases','lease_key=eq.main',{holder,acquired_at:new Date(now).toISOString(),expires_at:new Date(now+4*60000).toISOString()});
- else await dbInsert('graceflow_engine_leases',{lease_key:'main',holder,expires_at:new Date(now+4*60000).toISOString()});
- return true;
+ const acquired=await rpcAdmin('acquire_graceflow_engine_lease',{p_holder:holder,p_ttl_seconds:240});
+ return acquired===true;
 }
 function authorised(req){
  const direct=req.headers.get('x-graceflow-secret');
