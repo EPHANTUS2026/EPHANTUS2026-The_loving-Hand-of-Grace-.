@@ -17,6 +17,7 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
       STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       EXPECTED_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +30,7 @@ jobs:
         shell: bash
         run: |
           missing=0
-          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STAGING_TEST_PASSWORD STAGING_BASE_URL EXPECTED_GIT_SHA; do
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STAGING_TEST_PASSWORD STAGING_BASE_URL VERCEL_AUTOMATION_BYPASS_SECRET EXPECTED_GIT_SHA; do
             if [ -z "${!name}" ]; then
               echo "::error title=Missing Production Assurance input::$name is not configured"
               missing=1
