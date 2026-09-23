@@ -1,12 +1,12 @@
 import {NextResponse} from 'next/server';
-import {dbInsert,dbUpdate,rpcAdmin} from '@/lib/supabase-rest';
+import {dbInsert,dbUpdate,dbRpc} from '@/lib/supabase-rest';
 import {processEngineTick} from '@/lib/graceflow-automation';
 import {processNotificationOutbox} from '@/lib/notification-delivery';
 import {expireStaleKnowledge} from '@/lib/knowledge-governance';
 import {recordSystemEvent,requestId} from '@/lib/observability';
 
 async function acquireLease(holder){
- const acquired=await rpcAdmin('acquire_graceflow_engine_lease',{p_holder:holder,p_ttl_seconds:240});
+ const acquired=await dbRpc('acquire_graceflow_engine_lease',{p_holder:holder,p_ttl_seconds:240});
  return acquired===true;
 }
 function authorised(req){
