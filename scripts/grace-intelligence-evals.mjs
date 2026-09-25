@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {assessEvidence,EVIDENCE_STATE,truthPolicy} from '../lib/grace/truth-engine.js';
+import {emotionalIntelligence} from '../lib/grace/empathy.js';
+import {qualityGate} from '../lib/grace/response-quality.js';
+assert.equal(assessEvidence({sources:[],confidence:.2}),EVIDENCE_STATE.UNKNOWN);
+assert.equal(assessEvidence({sources:[{}],authoritative:true}),EVIDENCE_STATE.VERIFIED);
+assert.equal(assessEvidence({sources:[{}]}),EVIDENCE_STATE.GROUNDED);
+assert.equal(truthPolicy({state:'UNKNOWN'}).mayAssert,false);
+assert.equal(truthPolicy({state:'VERIFIED',claimType:'clinical'}).humanAuthorityRequired,true);
+assert.equal(emotionalIntelligence({signal:'OVERWHELMED'}).state,'DISTRESSED');
+assert.equal(emotionalIntelligence({safetyLevel:'EMERGENCY'}).state,'URGENT_SAFETY');
+assert.equal(qualityGate({answer:'You are diagnosed with depression.',evidenceState:'VERIFIED',claimType:'clinical',clinicalBoundary:false}).result,'BLOCK_OR_REWRITE');
+assert.equal(qualityGate({answer:'Your appointment is confirmed.',evidenceState:'VERIFIED',confirmedAction:false}).result,'BLOCK_OR_REWRITE');
+console.log('Grace intelligence/grounding/empathy evaluations: PASS');

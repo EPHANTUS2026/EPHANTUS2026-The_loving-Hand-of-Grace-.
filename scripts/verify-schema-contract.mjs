@@ -11,12 +11,34 @@ const required={
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!key){console.error('Schema verification requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');process.exit(1);}
-async function checkTable(name){const r=await fetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return r.ok;}
+const PROBE_TIMEOUT_MS=10000;
+const PROBE_RETRIES=2;
+const keyIsOpaque=/^sb_(?:secret|publishable)_/.test(key);
+async function probeFetch(input,init={}){
+  let lastError;
+  for(let attempt=0;attempt<=PROBE_RETRIES;attempt++){
+    try{
+      const response=await fetch(input,{...init,signal:AbortSignal.timeout(PROBE_TIMEOUT_MS)});
+      if(response.status!==502&&response.status!==503&&response.status!==504)return response;
+      const body=await response.text().catch(()=> '');
+      lastError=new Error(`Supabase Data API transient HTTP ${response.status}${body?`: ${body.slice(0,240)}`:''}`);
+    }catch(error){lastError=error;}
+    if(attempt<PROBE_RETRIES) await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+  }
+  throw lastError;
+}
+function authHeaders(){return keyIsOpaque?{apikey:key}:{apikey:key,Authorization:`Bearer ${key}`};}
+async function checkTable(name){try{const r=await probeFetch(`${url}/rest/v1/${name}?select=*&limit=0`,{headers:authHeaders()});if(r.ok)return true;const body=await r.text().catch(()=> '');console.error(`Schema probe table ${name} failed: HTTP ${r.status}${body?` ${body.slice(0,240)}`:''}`);return false;}catch(error){console.error(`Schema probe table ${name} failed: ${error?.name||'Error'} ${error?.message||''}`);return false;}}
 async function checkRpc({name,args}){
-  const r=await fetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
-  if(r.status!==404)return true;
-  const text=await r.text();
-  return !/Could not find the function|PGRST202|PGRST204/i.test(text);
+  try {
+    const r=await probeFetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(args)});
+    if(r.status!==404)return true;
+    const text=await r.text();
+    return !/Could not find the function|PGRST202|PGRST204/i.test(text);
+  } catch(error) {
+    console.error(`Schema probe RPC ${name} failed: ${error?.name||'Error'} ${error?.message||''}`);
+    return false;
+  }
 }
 const missing=[];
 for(const t of required.tables){if(!(await checkTable(t))) missing.push(`table:${t}`);}
