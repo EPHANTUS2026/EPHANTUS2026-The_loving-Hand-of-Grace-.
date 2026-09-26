@@ -44,7 +44,7 @@ jobs:
           test "$actual" = "$EXPECTED_GIT_SHA" || { echo "::error title=Candidate SHA mismatch::checkout=$actual expected=$EXPECTED_GIT_SHA"; exit 1; }
           echo "Exact candidate checkout PASS: $actual"
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Production verification gate
         timeout-minutes: 12
         run: npm run verify:production
