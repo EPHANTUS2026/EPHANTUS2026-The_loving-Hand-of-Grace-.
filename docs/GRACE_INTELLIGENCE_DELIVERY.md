@@ -15,7 +15,7 @@ quality. No live model, clinical review or participant pilot is claimed.
 | 4 Actions | Chat confirmation form, atomic requests, idempotency, conflict rejection, durable submitted/queued receipt, server-only RPC | Owned status lookup, downstream acknowledgement and concurrent integration test |
 | 5 Personalisation | Existing protected projections/authority retained; no protected records enter external model | Authorised role-specific synthesis and optional preference memory lifecycle |
 | 6 Support | Emergency routing now precedes Passport/resource branches; model instructions retain clinical boundaries | Reviewed multilingual safety/support library and handoff pilot |
-| 7 Reliability | Request bounds, provider timeout/cancellation, model quota, non-sensitive usage counters and fallback disclosure | Safe streaming, circuit breaker, cost dashboard and load benchmarks |
+| 7 Reliability | Request bounds, provider timeout/cancellation, model quota, process-local circuit breaker, non-sensitive usage counters and fallback disclosure | Safe streaming, fleet-wide outage coordination, cost dashboard and load benchmarks |
 | 8 Pilot | Authorised reviewer screen at /admin/grace/evaluations; immutable review records tied to candidate SHA and evidence ID | Genuine Centre reviews, staff pilot, protected preview and live release gates |
 
 ## Configuration and data processing
@@ -66,6 +66,23 @@ Rollback: disable GRACE_MODEL_ENABLED; existing deterministic support remains.
 Keep additive migrations. Do not disable RLS, consent or deployment identity gates.
 
 ## Known release blockers
+Rechecked 28 September: CI run 150 passed the production verification gate,
+then rejected the exact staging identity request with HTTP 401. Stateful staging
+tests were skipped. The connected Vercel team lists only zedhomeskenya, and
+looking up LHG project prj_fabxbaSexQuS7In3lDTb2tGFxUHZ returns 404.
+The project owner must reconnect Vercel with access to loving-hand-of-grace-staging
+and synchronise that project's automation bypass credential with the repository
+secret VERCEL_AUTOMATION_BYPASS_SECRET. Never paste the credential into chat.
+Re-run the exact-SHA identity gate before transmitting synthetic login credentials.
+
+Provider outage protection opens after three failed/invalid calls, suppresses
+new calls for 30 seconds, and permits one recovery probe per process. Caller
+cancellation does not count as provider failure; provider timeouts do. Late
+results cannot heal a newer outage. State contains no conversation data and
+resets on process restart. Database quotas remain the global spending bound;
+this circuit is not distributed rate limiting. Synthetic regression tests cover
+these transitions and confirm that no provider call occurs while open.
+
 No provider credential/approved processing configuration was available locally.
 Protected preview previously rejected CI with HTTP 401; verify current access
 before sending test credentials. Actual clinical and pilot reviews remain
