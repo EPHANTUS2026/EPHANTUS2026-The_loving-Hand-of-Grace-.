@@ -27,6 +27,7 @@ const team=[
   },
   {
     role:'Counselling Psychologist',
+    name:'PAUL KIMANI',
     photo:'/images/team/counselling-psychologist.jpg',
     docket:'Psychological Assessment & Therapy',
     profile:'Supports psychological wellbeing through professional assessment, counselling and evidence-informed therapeutic interventions, helping clients understand patterns, strengthen coping skills and work toward sustainable recovery goals.',
@@ -42,6 +43,7 @@ const team=[
   },
   {
     role:'Psychiatric Nurse',
+    name:'BRIDGET KINYA',
     photo:'/images/team/psychiatric-nurse.jpg',
     docket:'Nursing Care, Observation & Clinical Support',
     profile:'Provides nursing support within the multidisciplinary care environment, helping monitor wellbeing, support prescribed treatment, identify concerns that require escalation and promote safe, respectful day-to-day care.',
