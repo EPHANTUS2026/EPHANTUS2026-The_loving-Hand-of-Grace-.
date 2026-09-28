@@ -9,6 +9,7 @@ export const metadata={
 const team=[
   {
     role:'Director',
+    photo:'/images/team/director.jpg',
     docket:'Leadership, Governance & Strategic Direction',
     profile:'Provides overall leadership and stewardship of the facility, guiding its mission, governance, partnerships, service standards and long-term development while supporting a culture centred on dignity, accountability and recovery.',
     responsibilities:['Strategic leadership and governance','Organisational policy and quality oversight','Partnerships and stakeholder relations','Safeguarding culture and accountability']
