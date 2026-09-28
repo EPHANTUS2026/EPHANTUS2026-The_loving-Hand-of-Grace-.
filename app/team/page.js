@@ -34,6 +34,8 @@ const team=[
   },
   {
     role:'Addiction Counsellor',
+    name:'EDWIN F. NGALA',
+    photo:'/images/team/addiction-counsellor.jpg',
     docket:'Addiction Recovery Counselling & Reintegration',
     profile:'Works closely with clients on the practical and behavioural dimensions of recovery, supporting insight, motivation, recovery skills, relapse-prevention planning and preparation for healthier relationships and community life.',
     responsibilities:['Addiction-focused counselling','Recovery education and goal setting','Relapse-prevention skills','Reintegration and continuing-recovery support']
@@ -61,7 +63,8 @@ export default function TeamPage(){
       <div className="max-w-3xl"><p className="eyebrow">Support team</p><h2 className="h2">Different disciplines. One commitment to recovery.</h2><p className="lead">These profiles describe each professional docket. Names, credentials, registration details and approved photographs can be added to the relevant profile once confirmed.</p></div>
       <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {team.map(member=><article key={member.role} className="card min-w-0 overflow-hidden">
-          {member.photo ? <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-white"><Image src={member.photo} alt={`${member.role} at Loving Hand of Grace`} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-contain"/></div> : <PortraitPlaceholder role={member.role}/>}
+          {member.photo ? <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-white"><Image src={member.photo} alt={`${member.name ? `${member.name}, ` : ''}${member.role} at Loving Hand of Grace`} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-contain"/></div> : <PortraitPlaceholder role={member.role}/>}
+          {member.name && <p className="mt-4 text-lg font-bold tracking-wide text-slate-950">{member.name}</p>}
           <div className="mt-6 text-xs font-black uppercase tracking-[.16em] text-grace-700">{member.docket}</div>
           <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{member.role}</h3>
           <p className="mt-4 text-sm leading-7 text-slate-600">{member.profile}</p>
