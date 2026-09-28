@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';import {deploymentIdentity} from '@/lib/deployment-identity';export const dynamic='force-dynamic';export async function GET(){const x=deploymentIdentity();return NextResponse.json(x,{status:x.identityValid?200:503,headers:{'Cache-Control':'no-store'}})}

@@ -1,23 +1,40 @@
-import { dbInsert } from '@/lib/supabase-rest';
-function clean(v,n=500){return String(v||'').trim().slice(0,n)}
-export async function POST(request){
-  let body; try{body=await request.json()}catch{return Response.json({ok:false,error:'Invalid request'},{status:400})}
-  const name=clean(body.name,120), phone=clean(body.phone,40), email=clean(body.email,160), forWhom=clean(body.forWhom,80), message=clean(body.message,3000), consent=clean(body.consent,10);
-  if(!name||!phone||!email||!forWhom||!message||consent!=='yes') return Response.json({ok:false,error:'Missing required fields'},{status:400});
-  try{
-    const reference=`ADM-${Date.now().toString().slice(-8)}`;
-    const rows=await dbInsert('admissions',{reference,enquiry_name:name,enquiry_phone:phone,enquiry_email:email,source:`website:${forWhom}`,stage:'enquiry',priority:'routine',screening_summary:message,next_action:'Private screening contact'});
-    const admission=rows?.[0];
-    if(admission?.id){
-      const flow=(await dbInsert('workflow_instances',{workflow_key:'recovery_journey',entity_type:'admission',entity_id:admission.id,current_state:'enquiry',status:'active',metadata:{reference,source:'website_contact'}}))?.[0];
-      if(flow?.id){
-        await dbInsert('workflow_events',{workflow_instance_id:flow.id,event_type:'enquiry_submitted',source_channel:'website',actor_type:'visitor',summary:`Website enquiry received for ${forWhom}`,metadata:{reference,consent:true}});
-        await dbInsert('workflow_tasks',{workflow_instance_id:flow.id,task_type:'admissions_screening',title:'Contact enquirer and complete private screening',assigned_role:'admissions',status:'queued',payload:{admission_id:admission.id,reference}});
-      }
+import { createHmac } from 'node:crypto';
+import { dbRpc } from '@/lib/supabase-rest';
+import { validateEnquiry } from '@/lib/contact-validation.mjs';
+
+const reply = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
+export async function POST(request) {
+  if (request.headers.get('origin') !== new URL(request.url).origin) return reply({ ok: false }, 403);
+  if (!request.headers.get('content-type')?.startsWith('application/json')) return reply({ ok: false }, 415);
+  let body;
+  try {
+    const reader = request.body.getReader();
+    const chunks = []; let size = 0;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 4096) { await reader.cancel(); return reply({ ok: false }, 413); }
+      chunks.push(value);
     }
-    await dbInsert('audit_log',{action:'website_enquiry_received',entity_type:'admission',entity_id:admission?.id||reference,after_state:{reference,stage:'enquiry',source:forWhom},reason:'Consent captured on public enquiry form'});
-    return Response.json({ok:true,reference},{status:201});
-  }catch{
-    return Response.json({ok:false,error:'Admissions service is temporarily unavailable. Please contact the centre directly.'},{status:503});
-  }
+    body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch { return reply({ ok: false }, 400); }
+  const data = validateEnquiry(body);
+  if (!data) return reply({ ok: false, error: 'Please check the required fields.' }, 400);
+  if (body.website) return reply({ ok: true });
+  try {
+    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!secret) throw new Error('unavailable');
+    const hash = value => createHmac('sha256', secret).update(value).digest('hex');
+    const result = await dbRpc('submit_public_enquiry', {
+      p_key: data.submissionId,
+      p_fingerprint: hash(JSON.stringify(data)),
+      p_contact_hash: hash(data.phone.replace(/\D/g, '')),
+      p_name: data.name, p_phone: data.phone, p_email: data.email, p_service: data.service,
+    });
+    if (result?.status === 'limited') return reply({ ok: false, error: 'Please wait before trying again, or call the Centre.' }, 429);
+    if (result?.status === 'conflict') return reply({ ok: false, error: 'Please reload the form before making a new enquiry.' }, 409);
+    if (result?.status !== 'accepted') throw new Error('unavailable');
+    return reply({ ok: true }, 201);
+  } catch { return reply({ ok: false, error: 'Enquiries are temporarily unavailable. Please contact the Centre directly.' }, 503); }
 }
