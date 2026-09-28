@@ -35,7 +35,7 @@
     "grace:constitution": "node scripts/grace-constitutional-invariants.mjs",
     "grace:authority": "node scripts/grace-authority-invariants.mjs",
     "grace:adversarial": "node scripts/grace-adversarial-evals.mjs",
-    "grace:intelligence": "node scripts/grace-intelligence-evals.mjs",
+    "grace:intelligence": "node scripts/grace-intelligence-evals.mjs && node scripts/grace-runtime-tests.mjs && node scripts/grace-evaluation-catalogue.mjs",
     "grace:bilingual": "node scripts/grace-bilingual-evals.mjs",
     "grace:retrieval-attacks": "node scripts/grace-retrieval-attack-evals.mjs",
     "grace:hallucination": "node scripts/grace-hallucination-evals.mjs",
