@@ -27,7 +27,7 @@ export default function Contact() {
     } catch { setStatus('We could not confirm delivery. Please retry; the same enquiry will not be submitted twice.'); }
     finally { submitting.current = false; setBusy(false); }
   }
-  return <><PageHero eyebrow="Contact" title="Start with a confidential enquiry." description="Leave your contact details and the service you would like to discuss. Suitability and private care information are discussed during assessment." />
+  return <><PageHero backgroundImage="/images/contact/garden-path.webp" eyebrow="Contact" title="Start with a confidential enquiry." description="Leave your contact details and the service you would like to discuss. Suitability and private care information are discussed during assessment." />
     <section className="section"><div className="container-page grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
       <aside className="space-y-5"><div className="card"><h2 className="text-xl font-bold">Contact the Centre</h2>
         <dl className="mt-6 space-y-5">{[['Phone', centre.phone], ['Email', centre.email], ['Location', centre.address], ['Enquiry hours', centre.hours]].map(([label, value]) => <div key={label}><dt className="text-sm font-bold">{label}</dt><dd className="mt-1 break-words text-slate-600">{value || 'Contact the Centre for details'}</dd></div>)}</dl>
