@@ -32,7 +32,7 @@ async function legacyResponse(req){try{
   const base=orchestrateGrace({message,context:safeContext});
   const safety=safetyDisposition({safetyLevel:base.safetyLevel,providerAvailable:true});
   const empathy=emotionalIntelligence({signal:base.emotionalSignal,safetyLevel:base.safetyLevel,language:base.language});
-  if(base.needsSources){
+  if(base.needsSources && !['CLINICAL_SCOPE_BOUNDARY','PROFESSIONAL_ASSESSMENT_BOUNDARY','ACCESS_RESTRICTION_BOUNDARY'].includes(base.boundary)){
     const sources=await retrieveGovernedKnowledge(message,3);
     const evidenceState=assessEvidence({sources,authoritative:sources.some(s=>s.authority==='GOVERNED_DATABASE'),confidence:base.intentConfidence});
     const quality=qualityGate({answer:sources.map(s=>s.text).join(' '),evidenceState,claimType:['DIAGNOSIS_REQUEST','MEDICATION_OR_MEDICAL_REQUEST','CLINICAL_DECISION_REQUEST'].includes(base.intent)?'clinical':'centre',clinicalBoundary:base.boundary!=='NONE'});
