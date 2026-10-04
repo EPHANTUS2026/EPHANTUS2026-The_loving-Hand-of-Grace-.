@@ -1,5 +1,6 @@
 import './globals.css';
 import Header from '@/components/Header';
+import BannerNavigationWarmup from '@/components/BannerNavigationWarmup';
 import Footer from '@/components/Footer';
 import GraceAmbient from '@/components/grace/GraceAmbient';
 
@@ -13,5 +14,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="en"><body><Header/><main>{children}</main><GraceAmbient/><Footer/></body></html>;
+  return <html lang="en"><body><BannerNavigationWarmup/><Header/><main>{children}</main><GraceAmbient/><Footer/></body></html>;
 }
