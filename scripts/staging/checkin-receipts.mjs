@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {authToken,appFetch,restSelect,requireEnv} from './lib.mjs';
+requireEnv(['STAGING_TEST_PASSWORD','STAGING_BASE_URL']);
+const domain=process.env.STAGING_TEST_EMAIL_DOMAIN||'example.test',prefix=process.env.STAGING_TEST_EMAIL_PREFIX||'lhg-stage';
+const token=await authToken(`${prefix}+client-a@${domain}`,process.env.STAGING_TEST_PASSWORD);
+const origin=new URL(process.env.STAGING_BASE_URL).origin;
+const json={mood:4,craving:0,coping:['Rest'],note:'Synthetic PRD receipt verification',idempotencyKey:randomUUID()};
+const send=()=>appFetch('/api/grace/check-in',{token,method:'POST',json,headers:{origin}});
+const [a,b]=await Promise.all([send(),send()]);
+for(const x of [a,b]){assert.equal(x.res.status,200);assert.equal(x.body.confirmed,true);assert.equal(x.body.status,'saved');assert.ok(x.body.local_day);}
+assert.equal(a.body.id,b.body.id);
+const rows=await restSelect('grace_checkins',`id=eq.${a.body.id}&select=id,local_day`);assert.equal(rows.length,1);
+const conflict=await appFetch('/api/grace/check-in',{token,method:'POST',json:{...json,mood:3},headers:{origin}});assert.equal(conflict.res.status,409);
+const family=await authToken(`${prefix}+family-a@${domain}`,process.env.STAGING_TEST_PASSWORD);
+const denied=await appFetch('/api/grace/check-in',{token:family,method:'POST',json,headers:{origin}});assert.equal(denied.res.status,401);
+const forged=await appFetch('/api/grace/check-in',{token,method:'POST',json:{...json,client_id:randomUUID()},headers:{origin}});assert.equal(forged.res.status,400);
+const other=await authToken(`${prefix}+client-b@${domain}`,process.env.STAGING_TEST_PASSWORD);
+const read=await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/grace_checkins?id=eq.${a.body.id}&select=id`,{headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,Authorization:`Bearer ${other}`}});
+assert.equal(read.status,200);assert.deepEqual(await read.json(),[]);
+console.log('PASS deployed check-in parallel receipt, single persistence, retry conflict, family denial, cross-client read isolation and forged client input');

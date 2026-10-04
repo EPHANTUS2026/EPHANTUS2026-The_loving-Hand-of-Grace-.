@@ -1,6 +1,7 @@
 const required={
   tables:['profiles','clients','staff','workflow_instances','workflow_events','workflow_tasks','audit_log','knowledge_articles','knowledge_approvals','meditations','meditation_review_events','booking_types','booking_staff_pool','staff_availability','booking_slot_holds','booking_requests','booking_events','notification_outbox','grace_response_feedback','saved_grace_responses'],
   rpc:[
+    {name:'submit_grace_checkin',args:{p_key:'00000000-0000-4000-8000-000000000001',p_mood:4,p_craving:0,p_coping:null,p_note:null}},
     {name:'get_available_booking_slots',args:{p_booking_type:'00000000-0000-0000-0000-000000000000',p_from:'2099-01-01',p_to:'2099-01-01'}},
     {name:'hold_booking_slot',args:{p_booking_type:'00000000-0000-0000-0000-000000000000',p_staff:'00000000-0000-0000-0000-000000000000',p_start:'2099-01-01T09:00:00Z',p_end:'2099-01-01T10:00:00Z',p_format:'phone',p_booked_for:'self',p_hold_token_hash:'schema-contract-probe'}},
     {name:'confirm_booking_slot',args:{p_hold_id:'00000000-0000-0000-0000-000000000000',p_hold_token_hash:'schema-contract-probe',p_first_name:'Schema',p_last_name:'Probe',p_phone:'+254700000000',p_email:null,p_preferred_contact_method:'phone',p_consent_version:'schema-contract',p_manage_token_hash:'schema-contract-probe',p_idempotency_key:'schema-contract-probe'}},

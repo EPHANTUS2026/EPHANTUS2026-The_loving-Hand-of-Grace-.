@@ -1,21 +1,23 @@
-import { NextResponse } from 'next/server';
-import { getSession, dbInsert, dbAdminSelect } from '@/lib/supabase-rest';
-
-import {checkinPayload,persistCheckin} from '@/lib/grace/check-in.mjs';
-
+import {NextResponse} from 'next/server';
+import {getSession,dbRpc} from '@/lib/supabase-rest';
+import {checkinPayload,checkinRetryKey,persistCheckinReceipt} from '@/lib/grace/check-in.mjs';
+const headers={'Cache-Control':'private, no-store'};
 export async function POST(req){
-  if(req.headers.get('origin')!==new URL(req.url).origin)return NextResponse.json({error:'Invalid request origin.'},{status:403});
-  try{
-  const session=await getSession();
-  if(!session?.profile?.is_active||session.profile.role!=='client'||!session.profile.client_id) return NextResponse.json({error:'Authentication required.'},{status:401});
-  let body,payload;
-  try{body=await req.json();payload=checkinPayload(body);}catch{return NextResponse.json({error:'Invalid check-in values.'},{status:400});}
-  const created=await persistCheckin(session,payload,dbInsert);
-  // Portal-originated operational signals enter the same GraceFlow event spine.
-  try{
-    const flows=await dbAdminSelect('workflow_instances',`entity_type=eq.client&entity_id=eq.${encodeURIComponent(session.profile.client_id)}&status=eq.active&select=id&order=updated_at.desc&limit=1`);
-    if(flows?.[0]?.id) await dbInsert('workflow_events',{workflow_instance_id:flows[0].id,event_type:'grace_checkin_submitted',source_channel:'client_portal',actor_type:'client',actor_id:session.profile.client_id,summary:'Client completed a Grace check-in',metadata:{mood_score:payload.mood_score,craving_level:payload.craving_level,coping_tool:payload.coping_tool}});
-  }catch{}
-  return NextResponse.json({ok:true,confirmed:true,...created},{headers:{'Cache-Control':'private, no-store'}});
-  }catch{return NextResponse.json({error:'Check-in could not be confirmed. Please try again.'},{status:503,headers:{'Cache-Control':'private, no-store'}});}
+ if(req.headers.get('origin')!==new URL(req.url).origin)return NextResponse.json({error:'Invalid request origin.'},{status:403,headers});
+ const session=await getSession();
+ if(!session?.profile?.is_active||session.profile.role!=='client'||!session.profile.client_id)return NextResponse.json({error:'Authentication required.'},{status:401,headers});
+ let payload,key;
+ try{
+  const reader=req.body.getReader();let size=0;const chunks=[];
+  while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>16000){await reader.cancel();return NextResponse.json({error:'Request too large.'},{status:413,headers});}chunks.push(value);}
+  const body=JSON.parse(Buffer.concat(chunks).toString());
+  key=checkinRetryKey(body.idempotencyKey);delete body.idempotencyKey;payload=checkinPayload(body);
+ }catch{return NextResponse.json({error:'Invalid check-in values.'},{status:400,headers});}
+ try{
+  const receipt=await persistCheckinReceipt(session,payload,key,dbRpc);
+  return NextResponse.json({ok:true,confirmed:true,...receipt},{headers});
+ }catch(error){
+  const conflict=error.message==='checkin_retry_conflict';
+  return NextResponse.json({error:conflict?'This retry differs from the saved check-in. Reload to review it before saving a new entry.':'Check-in could not be confirmed. Retry the unchanged entry safely.'},{status:conflict?409:503,headers});
+ }
 }

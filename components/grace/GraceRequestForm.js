@@ -1,12 +1,12 @@
 'use client';
 import {useRef,useState} from 'react';
 export default function GraceRequestForm({onClose}){
- const key=useRef(null);const sending=useRef(false);
+ const key=useRef(null);const draft=useRef(null);const sending=useRef(false);
  const [status,setStatus]=useState('');const [busy,setBusy]=useState(false);const [submitted,setSubmitted]=useState(false);
  async function submit(event){
   event.preventDefault();if(sending.current)return;
   const body=Object.fromEntries(new FormData(event.currentTarget));
-  key.current ||= crypto.randomUUID();
+  const fingerprint=JSON.stringify(body);if(draft.current&&draft.current!==fingerprint){setStatus('An earlier submission is unconfirmed. Retry the unchanged request or contact the Centre before changing it.');return;}draft.current ||= fingerprint;key.current ||= crypto.randomUUID();
   sending.current=true;setBusy(true);
   try{
    const response=await fetch('/api/grace/action',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -19,7 +19,7 @@ export default function GraceRequestForm({onClose}){
  }
  return <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-violet-200 bg-white p-4 text-sm">
   <div className="flex justify-between gap-3"><h3 className="font-bold">Request team contact</h3><button type="button" onClick={onClose} className="underline">Close</button></div>
-  <p>This submits a request to admissions triage. It does not book an appointment or provide emergency assistance. Do not include medical details.</p>
+  <p>This submits a request to admissions triage. Staff response hours and acknowledgement time need confirmation with the Centre. This is a queued request, not a live conversation. It does not book an appointment or provide emergency assistance. Do not include medical details.</p>
   {!submitted&&<>
    <label>Request<select name="action" className="input"><option value="request_callback">Callback</option><option value="appointment_request">Assessment request</option><option value="admissions_contact">Admissions enquiry</option><option value="family_support_contact">Family support</option><option value="aftercare_contact">Aftercare support</option></select></label>
    <label>Your name<input name="name" required maxLength={120} autoComplete="name" className="input"/></label>

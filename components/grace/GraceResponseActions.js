@@ -1,6 +1,9 @@
 'use client';
 
 import {useEffect,useRef,useState} from 'react';
+import {speechText} from '@/lib/grace/speech.mjs';
+
+let stopActiveSpeech=null;
 import {
   ClipboardDocumentIcon, SpeakerWaveIcon, HandThumbUpIcon, HandThumbDownIcon,
   EllipsisHorizontalIcon, ArrowPathIcon, BookmarkIcon, ShareIcon,
@@ -21,11 +24,21 @@ export default function GraceResponseActions({
   const [reading,setReading]=useState(false);
   const [paused,setPaused]=useState(false);
   const [speed,setSpeed]=useState(1);
+  const [speechConsent,setSpeechConsent]=useState(false);
+  const [speechLanguage,setSpeechLanguage]=useState('en');
+  const [speechLoading,setSpeechLoading]=useState(false);
+  const playbackRef=useRef(null);
   const [saved,setSaved]=useState(false);
   const [status,setStatus]=useState('');
   const menuRef=useRef(null);
 
-  useEffect(()=>()=>{try{window.speechSynthesis?.cancel()}catch{}},[]);
+  useEffect(()=>{
+    const leave=()=>playbackRef.current?.stop();
+    const hide=()=>{if(document.hidden)leave()};
+    window.addEventListener('pagehide',leave);window.addEventListener('lhg:clear-private-context',leave);document.addEventListener('visibilitychange',hide);
+    return()=>{leave();window.removeEventListener('pagehide',leave);window.removeEventListener('lhg:clear-private-context',leave);document.removeEventListener('visibilitychange',hide)};
+  },[]);
+  useEffect(()=>()=>playbackRef.current?.stop(),[text]);
   useEffect(()=>{
     if(!menuOpen)return;
     function onKey(e){
@@ -46,19 +59,40 @@ export default function GraceResponseActions({
     try{await navigator.clipboard.writeText(text);setCopied(true);setStatus('Copied');setTimeout(()=>setCopied(false),1600)}catch{setStatus('Couldn’t copy this response.');}
   }
 
-  function startReading(){
-    if(!('speechSynthesis' in window)){setStatus('Read aloud is not available in this browser.');return;}
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=speed;
-    u.onend=()=>{setReading(false);setPaused(false)};
-    u.onerror=()=>{setReading(false);setPaused(false);setStatus('Read aloud stopped.')};
-    window.speechSynthesis.speak(u);
-    setReading(true);setPaused(false);setStatus('Reading aloud');
+  async function startReading(){
+    stopActiveSpeech?.();
+    if(!speechConsent){setStatus('Allow the selected response to be sent to Microsoft Azure for voice playback first.');return;}
+    const selected=speechText(text);
+    if(!selected){setStatus('No readable response text.');return;}
+    const controller=new AbortController();
+    const playback={audio:null,url:null,stop:()=>{
+      controller.abort();playback.audio?.pause();
+      if(playback.url)URL.revokeObjectURL(playback.url);
+      if(playbackRef.current===playback){playbackRef.current=null;setReading(false);setPaused(false);setSpeechLoading(false);}
+      if(stopActiveSpeech===playback.stop)stopActiveSpeech=null;
+    }};
+    playbackRef.current=playback;stopActiveSpeech=playback.stop;
+    window.speechSynthesis?.cancel();
+    setSpeechLoading(true);setStatus('Preparing Grace’s female voice…');
+    try{
+      const response=await fetch('/api/grace/speech',{method:'POST',cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({text:selected,language:speechLanguage,consent:true})});
+      if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Grace’s female voice is unavailable.');}
+      const blob=await response.blob();if(controller.signal.aborted)return;
+      playback.url=URL.createObjectURL(blob);playback.audio=new Audio(playback.url);playback.audio.playbackRate=speed;
+      playback.audio.onended=()=>{playback.stop();setStatus('Reading finished');};
+      playback.audio.onerror=()=>{playback.stop();setStatus('Voice playback is unavailable.');};
+      await playback.audio.play();
+      if(controller.signal.aborted)return;
+      setReading(true);setPaused(false);setSpeechLoading(false);setStatus(`Reading with ${speechLanguage==='sw'?'Zuri':'Asilia'}`);
+    }catch(error){if(controller.signal.aborted)return;playback.stop();setStatus(error.message||'Grace’s female voice is unavailable.');}
   }
-  function togglePause(){if(!reading)return startReading();if(paused){window.speechSynthesis.resume();setPaused(false);setStatus('Reading resumed')}else{window.speechSynthesis.pause();setPaused(true);setStatus('Reading paused')}}
-  function stopReading(){try{window.speechSynthesis.cancel()}catch{}setReading(false);setPaused(false);setStatus('Reading stopped')}
-  function restartReading(){stopReading();setTimeout(startReading,0)}
+  async function togglePause(){
+    const audio=playbackRef.current?.audio;if(!audio)return;
+    if(paused){try{await audio.play();setPaused(false);setStatus('Reading resumed');}catch{stopReading();setStatus('Could not resume playback.');}}
+    else{audio.pause();setPaused(true);setStatus('Reading paused');}
+  }
+  function stopReading(){playbackRef.current?.stop();setStatus('Reading stopped');}
+  function restartReading(){stopReading();startReading();}
 
   async function sendFeedback(sentiment,reason=''){
     try{
@@ -93,11 +127,11 @@ export default function GraceResponseActions({
   const iconButton='inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-xl px-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400';
 
   return <div className="mt-2" aria-label="Grace response actions">
-    {sources.length>0&&<details id={id} className="mb-1 hidden text-xs text-slate-500 sm:block"><summary className="cursor-pointer font-semibold text-violet-700">Sources · {sources.length}</summary><div className="mt-2 space-y-2 rounded-2xl bg-violet-50/70 p-3">{sources.map((s,i)=><div key={s.id||i}><b className="text-slate-800">{s.title||'Source'}</b>{s.section?` · ${s.section}`:''}{s.updated?<><br/>Updated {s.updated}</>:null}</div>)}</div></details>}
+    {sources.length>0&&<details id={id} className="mb-1 text-xs text-slate-600"><summary className="cursor-pointer font-semibold text-violet-700">Sources · {sources.length}</summary><div className="mt-2 space-y-2 rounded-2xl bg-violet-50/70 p-3">{sources.map((s,i)=><div key={s.id||i}><b className="text-slate-800">{s.title||'Source'}</b><a href={s.type==='authenticated_client_projection'?'/portal/recovery-passport':'/knowledge#centre-knowledge'} className="ml-2 underline text-violet-800">Open source information</a>{s.section?` · ${s.section}`:''}{s.updated?<><br/>Updated {s.updated}</>:null}</div>)}</div></details>}
 
     <div className="flex max-w-full items-center gap-0.5 overflow-visible" role="toolbar" aria-label="Response actions">
       <button type="button" onClick={copy} aria-label="Copy Grace response" title="Copy" className={iconButton}><ClipboardDocumentIcon className="h-4 w-4"/><span className="hidden sm:inline">{copied?'Copied':'Copy'}</span></button>
-      <button type="button" onClick={reading?togglePause:startReading} aria-label={reading?(paused?'Resume reading Grace response':'Pause reading Grace response'):'Read Grace response aloud'} title="Read aloud" className={iconButton}>{reading&&paused?<PlayIcon className="h-4 w-4"/>:<SpeakerWaveIcon className="h-4 w-4"/>}<span className="hidden sm:inline">{reading?(paused?'Resume':'Reading…'):'Read aloud'}</span></button>
+      <button type="button" disabled={speechLoading} onClick={reading?togglePause:startReading} aria-label={reading?(paused?'Resume reading Grace response':'Pause reading Grace response'):'Read Grace response aloud'} title="Read aloud" className={iconButton}>{reading&&paused?<PlayIcon className="h-4 w-4"/>:<SpeakerWaveIcon className="h-4 w-4"/>}<span className="hidden sm:inline">{reading?(paused?'Resume':'Reading…'):'Read aloud'}</span></button>
       <button type="button" onClick={()=>sendFeedback('helpful')} aria-label="Mark response as helpful" title="Helpful" aria-pressed={feedback==='helpful'} className={`${iconButton} ${feedback==='helpful'?'text-violet-700 bg-violet-50':''}`}><HandThumbUpIcon className="h-4 w-4"/><span className="sr-only sm:not-sr-only">Helpful</span></button>
       <button type="button" onClick={()=>{setFeedbackMode('feedback');setFeedbackOpen(true)}} aria-label="Mark response as not helpful" title="Not helpful" aria-pressed={feedback==='not_helpful'} className={`${iconButton} ${feedback==='not_helpful'?'text-violet-700 bg-violet-50':''}`}><HandThumbDownIcon className="h-4 w-4"/><span className="sr-only sm:not-sr-only">Not helpful</span></button>
       <div className="relative">
@@ -114,10 +148,15 @@ export default function GraceResponseActions({
       </div>
     </div>
 
-    {reading&&<div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500"><button onClick={restartReading} className="rounded-lg px-2 py-1 hover:bg-slate-100">Restart</button><button onClick={stopReading} className="rounded-lg px-2 py-1 hover:bg-slate-100"><StopIcon className="mr-1 inline h-3.5 w-3.5"/>Stop</button><label className="ml-1">Speed <select value={speed} onChange={e=>{setSpeed(Number(e.target.value));if(reading)restartReading()}} className="rounded-lg border border-slate-200 bg-white px-1.5 py-1"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select></label></div>}
+    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+      <label className="flex items-start gap-2"><input type="checkbox" checked={speechConsent} onChange={e=>{setSpeechConsent(e.target.checked);if(!e.target.checked)stopReading();}}/><span>Allow this response to be sent to Microsoft Azure for female voice playback. Avoid private or medical details.</span></label>
+      <label>Voice language <select aria-label="Read aloud language" value={speechLanguage} onChange={e=>{stopReading();setSpeechLanguage(e.target.value)}} className="rounded-lg border border-slate-200 p-1"><option value="en">English · Asilia</option><option value="sw">Kiswahili · Zuri</option></select></label>
+      {speechLoading&&<button type="button" onClick={stopReading}>Cancel voice request</button>}
+    </div>
+    {reading&&<div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500"><button onClick={restartReading} className="rounded-lg px-2 py-1 hover:bg-slate-100">Restart</button><button onClick={stopReading} className="rounded-lg px-2 py-1 hover:bg-slate-100"><StopIcon className="mr-1 inline h-3.5 w-3.5"/>Stop</button><label className="ml-1">Speed <select value={speed} onChange={e=>{setSpeed(Number(e.target.value));if(playbackRef.current?.audio)playbackRef.current.audio.playbackRate=Number(e.target.value)}} className="rounded-lg border border-slate-200 bg-white px-1.5 py-1"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select></label></div>}
 
     {feedbackOpen&&<div className="mt-2 rounded-2xl border border-slate-200 bg-white p-3 text-xs"><div className="font-bold text-slate-800">{feedbackMode==='report'?'Report this response':'What could Grace have done better?'}</div><div className="mt-2 flex flex-wrap gap-2">{(feedbackMode==='report'?['Incorrect','Potentially harmful','Privacy concern','Inappropriate','Broken source','Other']:feedbackReasons).map(reason=><button key={reason} onClick={()=>sendFeedback(feedbackMode==='report'?'report':'not_helpful',reason)} className="min-h-9 rounded-full bg-slate-100 px-3 text-slate-700 hover:bg-slate-200">{reason}</button>)}</div><button onClick={()=>setFeedbackOpen(false)} className="mt-2 text-slate-500">Cancel</button></div>}
     <div className="sr-only" aria-live="polite">{status}</div>
-    {status&&<div className="mt-1 text-[11px] text-slate-400" aria-hidden="true">{status}</div>}
+    {status&&<div className="mt-1 text-xs text-slate-600" aria-hidden="true">{status}</div>}
   </div>;
 }

@@ -32,7 +32,7 @@ export async function POST(req){
       return NextResponse.json({confirmed:false,error:'This request needs appropriate human or emergency support rather than routine automation.'},{status:409});
     }
     const result=await createGraceFlowAction({action,consent:true,name:clean(body?.name,120),phone,email,note:clean(body?.note,500),context:identity.mode.toLowerCase(),actor:gateway.actor,idempotencyKey:gateway.idempotencyKey,commandId:gateway.commandId});
-    return NextResponse.json(result,{status:result?.confirmed?201:503});
+    return NextResponse.json(result,{status:result?.confirmed?201:503,headers:{'Cache-Control':'private, no-store'}});
   }catch(error){
     return NextResponse.json({confirmed:false,error:'The system could not confirm that request. Please try again or contact the Centre.'},{status:503});
   }

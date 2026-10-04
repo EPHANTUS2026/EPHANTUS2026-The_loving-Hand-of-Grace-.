@@ -17,6 +17,8 @@ function passportAnswer(message,p){const m=message.toLowerCase();if(/stage|where
 
 async function legacyResponse(req){try{
   const b=await req.json(),message=String(b?.message||'').trim();
+  const urgent=orchestrateGrace({message,context:'visitor'});
+  if(urgent.safetyLevel==='EMERGENCY')return NextResponse.json(urgent,{headers:{'Cache-Control':'private, no-store'}});
   const session=await getSession().catch(()=>null);
   // Browser context is advisory only. Protected operating mode comes from the server session.
   const preflight=orchestrateGrace({message,context:'visitor'});
@@ -56,6 +58,7 @@ export async function POST(req) {
   const baseResponse=await legacyResponse({json:async()=>body});
   if(!baseResponse.ok)return baseResponse;
   const base=await baseResponse.json();
+  if(base.safetyLevel==='EMERGENCY')return NextResponse.json(base,{headers:{'Cache-Control':'private, no-store'}});
   try {
     const result=await enrichGraceResponse(req,body,base);
     const response=NextResponse.json(result.body,{status:result.status,headers:{'Cache-Control':'private, no-store'}});
