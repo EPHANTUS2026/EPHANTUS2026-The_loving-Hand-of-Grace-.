@@ -61,7 +61,7 @@ function PortraitPlaceholder({role}){
 
 export default function TeamPage(){
   return <main>
-    <PageHero eyebrow="Our Team" title="The people behind care, recovery and everyday support." description="Our multidisciplinary support team brings together leadership, operations, mental-health expertise, counselling and nursing support around the person and their recovery journey."/>
+    <PageHero backgroundImage="/images/team/team-background.webp" eyebrow="Our Team" title="The people behind care, recovery and everyday support." description="Our multidisciplinary support team brings together leadership, operations, mental-health expertise, counselling and nursing support around the person and their recovery journey."/>
 
     <section className="section"><div className="container-page">
       <div className="max-w-3xl"><p className="eyebrow">Support team</p><h2 className="h2">Different disciplines. One commitment to recovery.</h2><p className="lead">These profiles describe each professional docket. Names, credentials, registration details and approved photographs can be added to the relevant profile once confirmed.</p></div>
