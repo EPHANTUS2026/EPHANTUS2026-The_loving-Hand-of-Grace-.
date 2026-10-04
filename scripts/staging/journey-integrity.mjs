@@ -4,7 +4,7 @@ requireEnv(['STAGING_TEST_PASSWORD']);
 const password=process.env.STAGING_TEST_PASSWORD, domain=process.env.STAGING_TEST_EMAIL_DOMAIN||'example.test', prefix=process.env.STAGING_TEST_EMAIL_PREFIX||'lhg-stage';
 const tokenFor=(r)=>authToken(`${prefix}+${r.replaceAll('_','-')}@${domain}`,password);
 const transition=async(token,id,to,from)=>{ const {baseUrl,anonKey}=supabaseConfig(); const res=await fetch(`${baseUrl}/rest/v1/rpc/transition_recovery_journey`,{method:'POST',headers:{apikey:anonKey,Authorization:`Bearer ${token||anonKey}`,'Content-Type':'application/json'},body:JSON.stringify({p_admission_id:id,p_to:to,p_expected_from:from,p_reason:'Synthetic journey integrity certification'})}); const text=await res.text(); let body=text; try{body=text?JSON.parse(text):null}catch{} return {res,body,text}; };
-const mustDeny=(r,label)=>{if(r.res.status<400)throw new Error(`${label} unexpectedly succeeded (${r.res.status})`);};
+const mustDeny=(r,label)=>{if(r.res.status<400||r.res.status>=500)throw new Error(`${label} unexpectedly succeeded (${r.res.status})`);};
 const makeAdmission=async(stage='enquiry',extra={})=>(await restInsert('admissions',{reference:syntheticId('JOURNEY'),enquiry_name:'Synthetic Journey Integrity',source:'staging-certification',stage,...extra}))[0];
 
 const admissions=await tokenFor('admissions'), counsellor=await tokenFor('counsellor'), clinician=await tokenFor('clinician'), finance=await tokenFor('finance'), client=await tokenFor('client-a');
@@ -25,13 +25,17 @@ mustDeny(await transition(counsellor,a.id,'assessment','screening'),'counsellor 
 expectStatus(await transition(clinician,a.id,'assessment','screening'),200,'clinician assessment approval');
 
 // Replay/stale state is rejected and does not duplicate audit evidence.
-mustDeny(await transition(clinician,a.id,'assessment','screening'),'replayed assessment transition');
+const replay=await transition(clinician,a.id,'assessment','screening');
+expectStatus(replay,409,'replayed assessment conflict');
+if(replay.body?.code!=='PT409')throw new Error('Stale transition must return non-retryable PT409.');
 audits=await restSelect('audit_log',`entity_id=eq.${a.id}&action=eq.graceflow_transition&select=id,before_state,after_state`);
 if(audits.length!==2)throw new Error(`Expected exactly 2 successful transition audits, found ${audits.length}`);
 
 // Concurrency: exactly one request can acquire the row/state transition.
 let race=await makeAdmission();
 const [r1,r2]=await Promise.all([transition(admissions,race.id,'screening','enquiry'),transition(admissions,race.id,'screening','enquiry')]);
+const loser=[r1,r2].find(x=>x.res.status!==200);
+if(loser?.res.status!==409||loser.body?.code!=='PT409')throw new Error('Concurrent stale transition must return PT409 conflict.');
 const successes=[r1,r2].filter(x=>x.res.status===200).length; if(successes!==1)throw new Error(`Concurrent transition expected exactly one success, got ${successes}`);
 audits=await restSelect('audit_log',`entity_id=eq.${race.id}&action=eq.graceflow_transition&select=id`); if(audits.length!==1)throw new Error(`Concurrent transition expected one audit, found ${audits.length}`);
 const flows=await restSelect('workflow_instances',`entity_type=eq.admission&entity_id=eq.${race.id}&select=id,current_state`); if(flows.length!==1||flows[0].current_state!=='screening')throw new Error('Concurrent transition produced inconsistent workflow state.');
