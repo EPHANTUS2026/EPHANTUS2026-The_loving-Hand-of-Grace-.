@@ -43,3 +43,8 @@ for(const message of ['am anxious',"I'm anxious",'I am anxious','anxious','Grace
 assert.match(response('Try a grounding exercise').answer,/three things/);
 assert.match(response('I want to talk about it',[{user:'am anxious',assistant:'Would you like to talk?'}]).answer,/anxious today/);
 console.log('PASS exact anxiety phrases, bare emotion, Kiswahili, optional grounding and contextual talk follow-up');
+
+assert.ok(conversationSecret({SUPABASE_SERVICE_ROLE_KEY:'synthetic-service-secret-'.repeat(4)}));
+assert.equal(conversationSecret({NEXT_PUBLIC_SUPABASE_ANON_KEY:'public-anon'.repeat(20)}),null);
+assert.notEqual(conversationSecret({SUPABASE_SERVICE_ROLE_KEY:root}),root);
+console.log('PASS server-only credential derivation fallback; public anon keys cannot enable memory');
