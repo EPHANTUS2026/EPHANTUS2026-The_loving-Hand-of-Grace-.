@@ -5,7 +5,7 @@ import {SparklesIcon,XMarkIcon,PaperAirplaneIcon,StopIcon,ChevronDownIcon,Inform
 import GraceRequestForm from './GraceRequestForm';
 import GraceResponseActions from './GraceResponseActions';
 
-const WELCOME="Hi 👋 I’m Grace. I’m here to help you understand the Centre, explore your options, find recovery resources, or take the next step when you’re ready.\n\nWhat would you like help with today?";
+const WELCOME="Hello, I’m Grace. 💛 I’m the Centre’s AI support assistant.\n\nYou don’t have to take the next step alone. Please avoid sharing medical details here. Are you looking for support for yourself or someone you care about?";
 const START_ACTIONS=['Understand my options','Help for someone I care about','Book a confidential assessment','Ask a question'];
 
 export default function GraceChatPanel({open,onClose,authenticated=false,context='my_space'}){
