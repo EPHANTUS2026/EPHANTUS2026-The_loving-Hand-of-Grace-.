@@ -30,6 +30,7 @@ body { @apply bg-white text-slate-800 antialiased; }
   background: rgba(255, 255, 255, 0.70);
 }
 .image-banner-description { color: #1e293b; }
+.image-banner-label { color: #26473f; }
 @media (min-width: 1024px) {
   .image-text-overlay {
     --overlay-safe-edge: min(100%, calc(max(2rem, (100% - 80rem) / 2 + 2rem) + 56rem));
