@@ -1,4 +1,4 @@
-import { appFetch, authToken, expectStatus, restSelect, requireEnv, syntheticId } from './lib.mjs';
+import { appFetch, authToken, expectStatus, restSelect, restInsert, requireEnv, syntheticId } from './lib.mjs';
 
 requireEnv(['STAGING_TEST_PASSWORD']);
 const password = process.env.STAGING_TEST_PASSWORD;
@@ -22,6 +22,13 @@ await postForm(`/api/operations/admissions/${admission.id}`,clinicianToken,{prio
 await transition(clinicianToken,admission.id,'assessment','admission_ready','Assessment → admission ready');
 await postForm(`/api/operations/admissions/${admission.id}/create-client`,admissionsToken,{legal_name:syntheticName,preferred_name:'Synthetic',preferred_language:'English',primary_programme:'Synthetic Residential Programme'},'Client record created');
 const clientId=(await restSelect('admissions',`id=eq.${admission.id}&select=client_id`))?.[0]?.client_id; if(!clientId)throw new Error('Client record was not linked to admission.'); console.log(`✓ linked client: ${clientId}`);
+// Explicit authority on this run-scoped synthetic client; roles alone cannot
+// advance linked recovery records. No real staff or client grant is changed.
+for(const name of ['Staging Clinician','Staging Counsellor']) {
+ const profile=(await restSelect('profiles',`full_name=eq.${encodeURIComponent(name)}&is_active=eq.true&select=staff_id`))[0];
+ if(!profile?.staff_id)throw new Error('Synthetic journey staff identity missing');
+ await restInsert('staff_client_assignments',{staff_id:profile.staff_id,client_id:clientId,scopes:['journey'],purposes:['care'],active:true,starts_at:new Date().toISOString()});
+}
 await transition(clinicianToken,admission.id,'admission_ready','admitted','Admission ready → admitted');
 await postForm('/api/operations/care-plans',counsellorToken,{client_id:clientId,title:'Synthetic Person-Centred Care Plan',summary_for_client:'Synthetic care plan used only for staging validation.',confidential_clinical_context:'Synthetic test context; no real patient information.',start_date:new Date().toISOString().slice(0,10)},'Care plan created');
 const carePlan=(await restSelect('care_plans',`client_id=eq.${clientId}&status=eq.active&select=*&limit=1`))?.[0]; if(!carePlan)throw new Error('Care plan not found.'); await transition(counsellorToken,admission.id,'admitted','treatment','Admitted → treatment');

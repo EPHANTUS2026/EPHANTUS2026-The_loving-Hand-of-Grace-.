@@ -44,6 +44,18 @@ const flows=await restSelect('workflow_instances',`entity_type=eq.admission&enti
 // Create a fresh, run-scoped clinical fixture. Never depend on reusable synthetic clients whose discharge evidence persists across reruns.
 const clientRow=(await restInsert('clients',{client_code:syntheticId('JIC'),legal_name:'SYNTHETIC Journey Integrity '+syntheticId('CLIENT'),preferred_name:'Journey Integrity Fixture',status:'active'}))[0];
 if(!clientRow?.id)throw new Error('Unable to create isolated clinical authority fixture.');
+const clinicianProfile=(await restSelect('profiles','full_name=eq.Staging%20Clinician&is_active=eq.true&select=staff_id'))[0];
+if(!clinicianProfile?.staff_id)throw new Error('Synthetic clinician identity missing');
+const linked=await makeAdmission('enquiry',{client_id:clientRow.id});
+const unrelated=await transition(clinician,linked.id,'screening','enquiry');
+mustDeny(unrelated,'unassigned linked-client transition');
+if(!String(unrelated.body?.message||'').includes('client_relationship_required'))throw new Error('Expected explicit linked-client relationship denial');
+const assignment=(await restInsert('staff_client_assignments',{staff_id:clinicianProfile.staff_id,client_id:clientRow.id,scopes:['journey'],purposes:['care'],active:true,starts_at:new Date().toISOString()}))[0];
+expectStatus(await transition(clinician,linked.id,'screening','enquiry'),200,'assigned linked-client transition');
+await restUpdate('staff_client_assignments',`id=eq.${assignment.id}`,{active:false});
+const revoked=await transition(clinician,linked.id,'assessment','screening');mustDeny(revoked,'revoked linked-client transition');
+if(!String(revoked.body?.message||'').includes('client_relationship_required'))throw new Error('Expected relationship denial before clinical prerequisites');
+await restUpdate('staff_client_assignments',`id=eq.${assignment.id}`,{active:true});
 let d=await makeAdmission('discharge',{client_id:clientRow.id});
 await restInsert('discharge_plans',{client_id:clientRow.id,status:'approved',readiness_summary:'Synthetic status-only approval'});
 await restInsert('aftercare_plans',{client_id:clientRow.id,status:'active'});
