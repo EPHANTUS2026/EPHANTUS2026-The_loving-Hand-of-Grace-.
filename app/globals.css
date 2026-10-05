@@ -180,3 +180,8 @@ body { @apply bg-white text-slate-800 antialiased; }
     background: linear-gradient(to right, rgba(255,255,255,.575) 0%, rgba(255,255,255,.70) var(--overlay-clear-edge), rgba(255,255,255,.70) calc(100% - var(--overlay-clear-edge)), rgba(255,255,255,.575) 100%);
   }
 }
+
+/* First keyboard stop bypasses repeated navigation on every route. */
+.skip-link { position: fixed; top: .75rem; left: .75rem; z-index: 100; transform: translateY(-200%); padding: .75rem 1rem; border-radius: .5rem; background: #fff; color: #0f172a; font-weight: 700; }
+.skip-link:focus { transform: translateY(0); outline: 3px solid #26473f; outline-offset: 3px; }
+#main-content { scroll-margin-top: 6rem; }

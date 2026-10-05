@@ -13,9 +13,9 @@ export default async function MeditationPage(props) {
  const params = await props.params;
  const m=await publishedMeditation(params.slug);
  if(!m)notFound();
- return <main className="section bg-slate-50"><div className="mx-auto max-w-3xl px-4 sm:px-6">
+ return <div className="section bg-slate-50"><div className="mx-auto max-w-3xl px-4 sm:px-6">
  <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap gap-2 text-sm"><Link href="/knowledge" className="text-grace-700 underline">Knowledge</Link><span aria-hidden="true">/</span><Link href="/knowledge/daily-recovery" className="text-grace-700 underline">Daily Recovery</Link></nav>
  <MeditationReading meditation={m}/><MeditationShare/>
  <div className="mt-7 flex flex-wrap gap-4"><Link href="/knowledge/daily-recovery" className="btn btn-secondary">Return to Daily Recovery</Link><Link href="/knowledge" className="btn btn-secondary">Return to Knowledge</Link></div>
- </div></main>;
+ </div></div>;
 }

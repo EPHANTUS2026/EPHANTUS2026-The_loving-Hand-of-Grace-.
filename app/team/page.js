@@ -60,7 +60,7 @@ function PortraitPlaceholder({role}){
 }
 
 export default function TeamPage(){
-  return <main>
+  return <div>
     <PageHero backgroundImage="/images/team/team-background.webp" eyebrow="Our Team" title="The people behind care, recovery and everyday support." description="Our multidisciplinary support team brings together leadership, operations, mental-health expertise, counselling and nursing support around the person and their recovery journey."/>
 
     <section className="section"><div className="container-page">
@@ -77,5 +77,5 @@ export default function TeamPage(){
       </div>
       <p className="mt-8 max-w-4xl text-xs leading-6 text-slate-500">Team information is presented for general facility information. Individual assessment, diagnosis, treatment and clinical decisions remain subject to appropriate professional evaluation, consent, scope of practice and applicable care protocols.</p>
     </div></section>
-  </main>
+  </div>
 }
