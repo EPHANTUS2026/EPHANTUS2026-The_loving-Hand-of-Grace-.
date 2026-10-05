@@ -10,7 +10,7 @@ deployed identity, database reference and complete applied migration inventory.
 Complete each gate required by `lib/release-certification.mjs` with status,
 candidateSha, reviewer, reviewedAt (timestamp with timezone) and evidence reference.
 Use `docs/release-evidence.json` as a schema template; its empty fields are
-intentional. They do not replace the already recorded dd071 staging evidence.
+intentional. They do not replace exact-candidate CI and deployed identity evidence.
 
 Release Certification is a separate, manually dispatched workflow. Supply the
 exact deployed candidate SHA and non-sensitive evidence JSON after reviewers
@@ -80,3 +80,30 @@ engineering evidence for the final frozen candidate. Request explicit promotion
 approval only once mandatory gates pass. After approved promotion, verify the
 signed-out public domain, protected-authority smoke tests and operator monitoring.
 If any required gate is missing or fails, retain NO-GO regardless of launch date.
+
+## Monitoring handover worksheet
+
+Populate the operator, approved threshold, coverage and evidence fields before launch. The table is a proposed observation plan, not configured alerting or a claimed alert receipt.
+
+| Signal | Evidence surface | Trigger decision needed | Immediate response |
+| --- | --- | --- | --- |
+| Public availability / direct route | External availability check and deployed identity | Frequency and allowed error duration | Verify current deployment and affected route; retain redacted status. |
+| Login / authority failures | Protected operational health and test-user journey | Expected denial vs regression threshold | Check trusted active profile/assignment; never broaden access to silence a failure. |
+| Check-in / booking save | Durable receipt, transaction state and existing operational tests | Missing receipt/failure threshold | Reconcile original idempotency key before retrying. |
+| Grace / model failure | Approved health surface and synthetic relevance test | Acceptable fallback/latency policy | Preserve truthful fallback and human contact route. |
+| Scheduler lease/run age | Recorded worker runs, lease and task state | Sole worker, coverage and stale-run threshold | Preserve failure evidence; avoid starting a second worker. |
+| Notifications / dead letters | Attempts, dead-letter and ambiguous-send states | Retry limits and allowlisted recipients | Reconcile ambiguous sends; do not equate acceptance with delivery. |
+| Inventory posting | Pending/posting receipts, signed voucher references and count variance | Approved exception handling and item scope | Verify independent approver; do not edit ledger quantity directly. |
+
+Incident lead: pending. Backup contact: pending. Coverage hours: pending. Alert channel/recipient approval: pending. Provider sends and alert receipt test: not performed.
+
+## Incident sequence for the authorised operator
+
+1. Record environment, candidate SHA, deployment ID, discovery time and redacted symptom. Separate public outage, denied access, sensitive exposure and uncertain write.
+2. Check impact through approved health surfaces and synthetic journeys. Never copy clinical payloads or credentials into incident notes.
+3. Escalate through the approved human contact list and follow clinical/safeguarding policy for urgent danger. Named lead/coverage must be agreed before launch.
+4. Contain only the affected subsystem through approved controls. Preserve unrelated services, failed-run evidence and uncertain-write references.
+5. Reconcile durable receipts and provider states before replay. Use existing idempotency; ambiguous sends need a human decision.
+6. Restore through an approved compatible deployment or isolated recovery rehearsal. Production promotion, DNS and restoration are separate approval actions.
+7. Verify exact identity, public paths, protected denial/allow cases and monitoring. Record recovery time and outstanding data reconciliation.
+8. Retain an attributable incident receipt and root-cause follow-up; no alert or recovery exercise is certified until actually performed.

@@ -3,13 +3,13 @@
 Assigned by the owner on 5 October 2026, Africa/Nairobi.
 All decisions pending. Target launch: 7 November 2026.
 
-Candidate: `dd071d42c850bf06e5c5de66fc2fe76558a40952`.
-Preview: https://loving-hand-of-grace-staging-isfy26cdo-zedcollectionskenya.vercel.app/grace
-Automated evidence: `STAGING_EXACT_COMMIT_CERTIFICATION_20261005.md`.
+Candidate: record the exact deployed SHA at review time using the staging deployment identity. Do not reuse an older candidate's receipt.
+Canonical branch preview: https://loving-hand-of-grace-staging-git-rep-804236-zedcollectionskenya.vercel.app/grace
+Current engineering findings: `NEXT_ACTIONS_VERIFICATION_20261005.md`.
 
 ## How to review
 
-Use synthetic examples, never real client details. Check the candidate above;
+Use synthetic examples, never real client details. Verify and record the deployed candidate;
 record the actual device, language and assistant mode. Mark each item Pass,
 Fail or Blocked, with evidence and a short reason. A blocked test is not a pass.
 Review both rules-based and enhanced-model paths when available. Changes to
@@ -107,3 +107,14 @@ An accepted review must not leave required checks failed or blocked. Store the
 completed receipt through the existing authorised review workflow where
 supported; retain other receipts as attributable review evidence. Do not claim
 that a blank template or an automated test is a signed human acceptance.
+
+## Review handover register
+
+| Reviewer | Review areas | Status |
+| --- | --- | --- |
+| Paul Kimani, supported by Bridget Kinya | Clinical boundaries, anxiety/cravings guidance, service and meditation claims, escalation | Pending human review |
+| Edwin F. Ngala | Recovery/family experience, fluent Kiswahili, English/Kiswahili voice listening, privacy wording | Pending human review; voice blocked by missing Azure resource |
+| Bishop Beatrice Wambui Njuguna | Coverage, enquiry expectations, operational escalation, pilot worker, incident contacts | Pending decisions and human review |
+| Ephantus Githinji and Director | Remaining enterprise assignments/scopes, production identity and promotion approval | Inventory approver decision recorded; other decisions pending |
+
+Reviewers are named by the owner; no invitation or message has been sent and no acceptance is fabricated. Complete the receipt above for each review, record failed/blocked cases and keep voice listening open until configured playback is actually heard on desktop and mobile.

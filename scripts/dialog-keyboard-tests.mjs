@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {handleDialogKeyDown} from '../lib/dialog-keyboard.mjs';
+let focused=null,closed=0,prevented=0,stopped=0;
+const first={getClientRects:()=>[1],focus:()=>focused=first};const last={getClientRects:()=>[1],focus:()=>focused=last};const hidden={getClientRects:()=>[],focus:()=>{throw Error('Hidden element focused');}};
+const panel={querySelectorAll:()=>[first,hidden,last],ownerDocument:{activeElement:last},focus:()=>focused=panel};
+const event=(key,shiftKey=false)=>({key,shiftKey,currentTarget:panel,preventDefault:()=>prevented++,stopPropagation:()=>stopped++});
+handleDialogKeyDown(event('Tab'),()=>closed++);assert.equal(focused,first);panel.ownerDocument.activeElement=first;handleDialogKeyDown(event('Tab',true),()=>closed++);assert.equal(focused,last);
+const before=prevented;handleDialogKeyDown(event('Tab'),()=>closed++);assert.equal(prevented,before);
+handleDialogKeyDown(event('Escape'),()=>closed++);assert.equal(closed,1);assert.equal(stopped,1);
+panel.querySelectorAll=()=>[];handleDialogKeyDown(event('Tab'),()=>closed++);assert.equal(focused,panel);
+console.log('PASS modal Escape dismissal, visible-control focus wrap, reverse wrap, native middle traversal and empty dialog fallback.');
