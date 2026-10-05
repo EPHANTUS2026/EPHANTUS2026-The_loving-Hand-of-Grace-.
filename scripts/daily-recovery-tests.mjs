@@ -28,7 +28,7 @@ for(const m of entries){
  assert.ok(html.includes('not published'));
 }
 const query=fs.readFileSync('lib/daily-recovery.js','utf8');
-for(const filter of ['status=eq.published','clinical_review_status=eq.approved','spiritual_review_status=eq.approved'])assert.ok(query.includes(filter));
+for(const filter of ['status=eq.published','clinical_review_status.eq.approved','spiritual_review_status.eq.approved','owner_publication_exception_hash.not.is.null'])assert.ok(query.includes(filter));
 assert.ok(query.includes('Africa/Nairobi'));
 assert.ok(!query.includes('dbAdminSelect'));
 assert.ok(fs.readFileSync('app/knowledge/page.js','utf8').includes('href="/knowledge/daily-recovery"'));
