@@ -1,0 +1,279 @@
+{
+  "project": "rpszhpjmchirzzndasrb",
+  "capturedDateNairobi": "2026-10-05",
+  "migrationsAppliedByThisPhase": false,
+  "migrations": [
+    {
+      "version": "20260911140027",
+      "name": "operational_platform"
+    },
+    {
+      "version": "20260911140132",
+      "name": "grace_intelligence_platform"
+    },
+    {
+      "version": "20260911140159",
+      "name": "live_care_operations"
+    },
+    {
+      "version": "20260911140229",
+      "name": "graceflow_enterprise_engine"
+    },
+    {
+      "version": "20260911140302",
+      "name": "graceflow_automation_engine"
+    },
+    {
+      "version": "20260911140510",
+      "name": "recovery_os_and_graceflow_studio2"
+    },
+    {
+      "version": "20260911140529",
+      "name": "production_hardening"
+    },
+    {
+      "version": "20260911140559",
+      "name": "staging_security_hardening"
+    },
+    {
+      "version": "20260911140616",
+      "name": "staging_rpc_lockdown"
+    },
+    {
+      "version": "20260913012451",
+      "name": "daily_meditations_and_guided_prayer"
+    },
+    {
+      "version": "20260913025002",
+      "name": "grace_response_actions"
+    },
+    {
+      "version": "20260913025237",
+      "name": "grace_response_reports"
+    },
+    {
+      "version": "20260913031100",
+      "name": "confidential_booking_and_meditation_governance"
+    },
+    {
+      "version": "20260913031618",
+      "name": "booking_staff_pool_and_meditation_review_events"
+    },
+    {
+      "version": "20260913031657",
+      "name": "booking_atomic_functions_and_meditation_publish_gate_v2"
+    },
+    {
+      "version": "20260913181406",
+      "name": "whatsapp_communications"
+    },
+    {
+      "version": "20260913194957",
+      "name": "recovery_passport_client_projection"
+    },
+    {
+      "version": "20260914165719",
+      "name": "booking_atomic_confirmation"
+    },
+    {
+      "version": "20260914171222",
+      "name": "booking_parallel_race_certification"
+    },
+    {
+      "version": "20260914171302",
+      "name": "remove_unused_booking_race_fixture"
+    },
+    {
+      "version": "20260914171555",
+      "name": "client_isolation_certification_rpc"
+    },
+    {
+      "version": "20260914171613",
+      "name": "remove_invalid_client_isolation_rpc"
+    },
+    {
+      "version": "20260914185821",
+      "name": "grace_governed_knowledge"
+    },
+    {
+      "version": "20260914235609",
+      "name": "grace_public_knowledge_authorization_hardening"
+    },
+    {
+      "version": "20260916074908",
+      "name": "align_admissions_rls_with_clinical_roles"
+    },
+    {
+      "version": "20260916080023",
+      "name": "align_graceflow_workflow_rls_with_clinical_roles"
+    },
+    {
+      "version": "20260916234013",
+      "name": "grace360_release_gate_security_hardening"
+    },
+    {
+      "version": "20260916234025",
+      "name": "grace360_internal_table_deny_policies"
+    },
+    {
+      "version": "20260916234041",
+      "name": "grace360_helper_rpc_invoker_hardening"
+    },
+    {
+      "version": "20260916234059",
+      "name": "move_btree_gist_to_extensions_schema"
+    },
+    {
+      "version": "20260916234153",
+      "name": "align_discharge_aftercare_rls_with_clinical_roles"
+    },
+    {
+      "version": "20260917001218",
+      "name": "restore_rls_helper_security_definer"
+    },
+    {
+      "version": "20260918070703",
+      "name": "public_rpc_boundary_hardening"
+    },
+    {
+      "version": "20260918072516",
+      "name": "identity_rls_role_scope_hardening"
+    },
+    {
+      "version": "20260918074607",
+      "name": "atomic_recovery_journey_transition"
+    },
+    {
+      "version": "20260918090120",
+      "name": "recovery_authority_bypass_guards"
+    },
+    {
+      "version": "20260918134237",
+      "name": "recovery_knowledge_library"
+    },
+    {
+      "version": "20260918135112",
+      "name": "client_welfare_graph_foundation"
+    },
+    {
+      "version": "20260918135614",
+      "name": "client_support_requests"
+    },
+    {
+      "version": "20260918135635",
+      "name": "fix_client_support_request_audit_contract"
+    },
+    {
+      "version": "20260918140104",
+      "name": "client_support_graceflow_routing"
+    },
+    {
+      "version": "20260918140147",
+      "name": "lock_client_support_rpc"
+    },
+    {
+      "version": "20260918140438",
+      "name": "family_consent_enforcement"
+    },
+    {
+      "version": "20260918143010",
+      "name": "staff_support_request_authority"
+    },
+    {
+      "version": "20260918175333",
+      "name": "support_request_sla"
+    },
+    {
+      "version": "20260918175354",
+      "name": "capture_support_first_response"
+    },
+    {
+      "version": "20260918180331",
+      "name": "circle_of_care_preferences"
+    },
+    {
+      "version": "20260919065719",
+      "name": "client_support_graceflow_authority"
+    },
+    {
+      "version": "20260919075823",
+      "name": "retire_legacy_client_support_rpc"
+    },
+    {
+      "version": "20260919075927",
+      "name": "retire_legacy_support_transition_rpc"
+    },
+    {
+      "version": "20260919211027",
+      "name": "repair_postgrest_exposed_schema_config"
+    },
+    {
+      "version": "20260919211655",
+      "name": "restore_managed_postgrest_schema_config"
+    },
+    {
+      "version": "20260920185129",
+      "name": "grace_identity_relationship_authority"
+    },
+    {
+      "version": "20260920185142",
+      "name": "grace_client_requests_projection"
+    },
+    {
+      "version": "20260920185159",
+      "name": "grace_action_command_idempotency"
+    },
+    {
+      "version": "20260923052738",
+      "name": "graceflow_runtime_integrity"
+    },
+    {
+      "version": "20260923182514",
+      "name": "fix_recovery_authority_guard_table_dispatch"
+    },
+    {
+      "version": "20260926042723",
+      "name": "launch_projection_authority_repair"
+    },
+    {
+      "version": "20260927115555",
+      "name": "confidential_service_enquiry"
+    },
+    {
+      "version": "20260928025802",
+      "name": "grace_atomic_requests_and_quota"
+    },
+    {
+      "version": "20260928030318",
+      "name": "grace_evaluation_reviews"
+    },
+    {
+      "version": "20260928030513",
+      "name": "grace_review_append_only"
+    },
+    {
+      "version": "20261004214430",
+      "name": "recovery_stale_transition_conflict"
+    },
+    {
+      "version": "20261004222137",
+      "name": "grace_checkin_receipts"
+    },
+    {
+      "version": "20261004222906",
+      "name": "grace_checkin_event_integrity"
+    },
+    {
+      "version": "20261005002728",
+      "name": "daily_recovery_editorial_fields"
+    },
+    {
+      "version": "20261005003215",
+      "name": "daily_recovery_public_policy_scope"
+    },
+    {
+      "version": "20261005010009",
+      "name": "daily_recovery_owner_publication_exception"
+    }
+  ]
+}
