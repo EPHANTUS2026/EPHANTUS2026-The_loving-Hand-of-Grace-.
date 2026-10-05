@@ -99,3 +99,66 @@ notification concurrency/failure suite and production build (86 pages) passed.
 These are local results; enhanced-model, real audio and live browser acceptance
 are not inferred from them. The deployed c636 candidate does not yet contain
 this subsequent repair. Full launch remains NO-GO.
+
+## Notification repair publication checkpoint
+
+The repair was published as a fast-forward on the existing repair branch via
+the authorised GitHub connection. Published SHA:
+e972bd3d6b8072ed227c7c994f25959835408ccf. Source tree:
+d40c7c7b7a0b8e4765b06ecd5a89bb38f9aacc1a, exactly matching local tested
+commit 1e7d3e252248e4e0acc66d3e4dedd03d792cda16.
+
+Vercel created preview deployment dpl_H5Q9PQqitgZ4YnTRWuTYG8DJGPB1 in
+prj_fabxbaSexQuS7In3lDTb2tGFxUHZ, target null, correct repository and branch.
+URL: https://loving-hand-of-grace-staging-c1mjutdgu-zedcollectionskenya.vercel.app/
+The deployment progressed QUEUED -> BUILDING -> READY. Build-event read returned
+404 while queued; deployment metadata subsequently confirmed READY with no
+alias error. Runtime identity for this new SHA has not yet been certified.
+
+The verification browser opened the new homepage, followed Knowledge navigation
+and then Daily Recovery. Accessibility observations and viewport screenshots
+confirm the Knowledge image banner renders with text over its light overlay,
+and the Daily Recovery landing page shows all five ordered meditation links
+with Beginning Again featured. This is a limited desktop render/navigation
+smoke check, not full responsive, contrast or portal acceptance. Individual
+meditation playback, reflection and direct-refresh checks remain outstanding.
+
+Production Assurance triggers on main pushes/PRs or manual dispatch; no
+workflow run exists for this repair-branch push. Exact-commit CI certification
+remains outstanding. Its current staging URL comes from an existing secret
+(or an older branch-specific override), so it must target the new candidate
+before a meaningful live gate run. No production promotion, schema mutation,
+provider send or scheduled worker invocation was performed.
+
+## Additional live browser checks — 5 October, after 14:11 Nairobi
+
+On deployment dpl_H5Q9PQqitgZ4YnTRWuTYG8DJGPB1:
+
+- All five meditation detail URLs load directly with the supplied quotation,
+  supporting text where present and reflection question. Beginning Again
+  reloads successfully; its optional scripture disclosure expands to the
+  supplied Lamentations excerpt and resets closed on refresh. No optional
+  scripture disclosure appears on the other four entries. The cravings entry
+  has the separate optional-breathing and urgent-support safety note.
+- All six service detail URLs load directly with their matching headings,
+  confidential support CTA, assessment CTA and accordion controls. The Aftercare
+  process disclosure expands with Enter and survives page refresh.
+- Recovery Journey, Life at Grace and Contact render in browser. My Space and
+  Families redirect this application-signed-out session to login; no protected
+  client/family care records were displayed. This is not an API/RLS bypass test.
+- Grace rules-based live synthetic conversation: "I am anxious" produces
+  relevant validation, optional grounding and a choice of grounding/talking.
+  Selecting "I want to talk about it" produces "You can take your time. What
+  has been making you feel anxious today?" Context was retained.
+  "Nina wasiwasi" produces a Kiswahili validation, optional grounding exercise
+  and choice to talk. This proves language/relevance for this fixture, not
+  fluent-speaker acceptance of the complete assistant.
+- The new candidate's runtime identity endpoint remains blocked by
+  ERR_BLOCKED_BY_CLIENT in the verification browser. Prior owner-screenshot
+  certification of c636 does not certify runtime e972. Deployment metadata
+  confirms e972, but these are different kinds of evidence.
+
+No new authenticated account, protected-record mutation, real notification,
+audio send, enhanced-model consent or clinical/human approval was created.
+These limited desktop checks do not establish measured contrast, full keyboard
+coverage, mobile/tablet layouts, playback quality or full launch readiness.
