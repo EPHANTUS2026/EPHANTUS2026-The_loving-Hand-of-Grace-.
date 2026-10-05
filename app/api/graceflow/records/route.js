@@ -1,26 +1,34 @@
 import { NextResponse } from 'next/server';
-import { getSession, dbInsert } from '@/lib/supabase-rest';
+import { getSession, dbRpc } from '@/lib/supabase-rest';
 import { moduleMap } from '@/lib/graceflow-enterprise';
 
-const staffRoles=['counsellor','clinician','admissions','finance','administrator','manager','super_admin','hr','procurement','inventory','project_manager','helpdesk','marketing','accountant','field_service'];
-const clean=(v,n=500)=>String(v||'').trim().slice(0,n);
-function ref(module){return `${module.replace(/[^a-z]/gi,'').slice(0,4).toUpperCase()}-${Date.now().toString().slice(-8)}`}
+const headers={'Cache-Control':'private, no-store'};
+const error=(status,message)=>NextResponse.json({error:message},{status,headers});
 export async function POST(req){
- const session=await getSession(); if(!session?.profile?.is_active||!staffRoles.includes(session.profile.role)) return NextResponse.json({error:'Staff authentication required.'},{status:403});
- const ct=req.headers.get('content-type')||''; const body=ct.includes('application/json')?await req.json():Object.fromEntries((await req.formData()).entries());
- const module=clean(body.module,40), info=moduleMap[module]; if(!info)return NextResponse.json({error:'Unknown GraceFlow module.'},{status:400});
- const recordType=clean(body.record_type,80); if(!info.types.includes(recordType))return NextResponse.json({error:'Unsupported record type.'},{status:400});
- const title=clean(body.title,160); if(!title)return NextResponse.json({error:'Title is required.'},{status:400});
- const reference=ref(module); const amount=body.amount?Number(body.amount):null;
+ if(req.headers.get('origin')!==new URL(req.url).origin)return error(403,'Invalid request origin.');
+ const s=await getSession();
+ if(!s?.profile?.is_active||!s.profile.staff_id)return error(403,'Staff authentication required.');
  try{
-  const rec=(await dbInsert('enterprise_records',{module,record_type:recordType,reference,title,status:'new',priority:clean(body.priority,20)||'routine',owner_staff_id:session.profile.staff_id||null,amount:Number.isFinite(amount)?amount:null,currency:'KES',due_at:body.due_at?`${clean(body.due_at,10)}T17:00:00+03:00`:null,data:{details:clean(body.details,3000),created_by_role:session.profile.role,source:'staff_portal'}}))?.[0];
-  const flow=(await dbInsert('workflow_instances',{workflow_key:`${module}_${recordType}`,entity_type:'enterprise_record',entity_id:rec.id,current_state:'created',status:'active',metadata:{module,record_type:recordType,reference,source:'staff_portal'}}))?.[0];
-  if(flow?.id){
-    await dbInsert('workflow_events',{workflow_instance_id:flow.id,event_type:'record_created',source_channel:'staff_portal',actor_type:'staff',actor_id:session.profile.staff_id||null,summary:`${title} created`,metadata:{module,record_type:recordType,reference}});
-    await dbInsert('workflow_tasks',{workflow_instance_id:flow.id,task_type:`${module}_review`,title:`Review ${title}`,assigned_staff_id:session.profile.staff_id||null,status:'queued',due_at:body.due_at?`${clean(body.due_at,10)}T17:00:00+03:00`:null,payload:{record_id:rec.id,module,reference}});
-  }
-  await dbInsert('audit_log',{action:'enterprise_record_created',entity_type:'enterprise_record',entity_id:rec.id,actor_profile_id:session.profile.id,after_state:{module,record_type:recordType,reference,status:'new'},reason:'Created through staff GraceFlow workspace'});
-  if(!ct.includes('application/json')) return NextResponse.redirect(new URL(`/staff/graceflow/${module}`,req.url),303);
-  return NextResponse.json({ok:true,record:rec,workflow_id:flow?.id},{status:201});
- }catch(e){return NextResponse.json({error:e.message||'Unable to create workflow record.'},{status:500})}
+  const ct=req.headers.get('content-type')||'';
+  if(Number(req.headers.get('content-length'))>16000)return error(413,'Request too large.');
+  const raw=await req.text();if(Buffer.byteLength(raw)>16000)return error(413,'Request too large.');
+  const body=ct.includes('application/json')?JSON.parse(raw):Object.fromEntries(new URLSearchParams(raw));
+  const keys=['module','record_type','title','priority','amount','due_at','details'];
+  if(!body||Array.isArray(body)||Object.keys(body).some(k=>!keys.includes(k)))return error(400,'Invalid record request.');
+  const info=Object.hasOwn(moduleMap,body.module)?moduleMap[body.module]:null;
+  if(!info||!info.types.includes(body.record_type)||typeof body.title!=='string'||!body.title.trim()||body.title.length>160)return error(400,'Invalid record request.');
+  if(!await dbRpc('enterprise_authority',{p_module:body.module,p_action:'create'},{admin:false,token:s.token}))return error(403,'No assignment permits this action.');
+  const priority=body.priority||'routine',details=body.details||'';
+  const amount=body.amount===''||body.amount==null?null:Number(body.amount);
+  if(!['routine','high','urgent'].includes(priority)||typeof details!=='string'||details.length>3000||(amount!==null&&(!Number.isFinite(amount)||amount<0))||body.due_at&&!/^\d{4}-\d{2}-\d{2}$/.test(body.due_at))return error(400,'Invalid record request.');
+  const result=await dbRpc('create_enterprise_record',{p_module:body.module,p_type:body.record_type,p_title:body.title.trim(),p_priority:priority,p_amount:amount,p_due:body.due_at?body.due_at+'T17:00:00+03:00':null,p_details:details},{admin:false,token:s.token});
+  if(!result?.ok||!result.record?.id||!result.workflow_id)return error(503,'Unable to confirm record creation.');
+  if(!ct.includes('application/json'))return NextResponse.redirect(new URL('/staff/graceflow/'+body.module,req.url),303);
+  return NextResponse.json(result,{status:201,headers});
+ }catch(e){
+  if(e instanceof SyntaxError)return error(400,'Invalid record request.');
+  if(/enterprise_authority_denied/.test(e?.message||''))return error(403,'No assignment permits this action.');
+  if(/invalid_enterprise_record|invalid input syntax/.test(e?.message||''))return error(400,'Invalid record request.');
+  return error(503,'Unable to create workflow record.');
+ }
 }
