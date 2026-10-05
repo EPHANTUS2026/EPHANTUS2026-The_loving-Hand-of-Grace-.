@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const React=require('react');
+const {renderToStaticMarkup}=require('react-dom/server');
+const {transform}=require('sucrase');
+const entries=JSON.parse(fs.readFileSync('content/daily-recovery-meditations.json','utf8'));
+assert.deepEqual(entries.map(m=>m.slug),['beginning-again','loving-without-losing-yourself','a-wave-not-a-wall','you-are-more-than-your-worst-day','small-roots-strong-tree']);
+assert.deepEqual(entries.map(m=>m.display_order),[1,2,3,4,5]);
+assert.equal(new Set(entries.map(m=>m.slug)).size,5);
+assert.equal(entries.filter(m=>m.featured).length,1);
+assert.equal(entries[0].featured,true);
+assert.equal(entries.filter(m=>m.optional_scripture).length,1);
+assert.equal(entries.filter(m=>m.safety_note).length,1);
+assert.ok(entries.every(m=>m.status==='under_review'&&m.clinical_review_status==='pending'&&m.spiritual_review_status==='pending'&&m.meditation_date===null));
+const source=fs.readFileSync('components/knowledge/MeditationReading.js','utf8');
+const compiled=transform(source,{transforms:['jsx','imports'],jsxRuntime:'automatic'}).code;
+const module={exports:{}};
+vm.runInNewContext(compiled,{module,exports:module.exports,require:name=>name==='@/lib/daily-recovery'?{publicationDate:()=>null}:require(name)});
+const decode=html=>html.replaceAll('&#x27;',"'").replaceAll('&quot;','"').replaceAll('&amp;','&');
+for(const m of entries){
+ const html=decode(renderToStaticMarkup(React.createElement(module.exports.default,{meditation:m,preview:true})));
+ for(const text of [m.title,m.main_quotation,m.supporting_text,m.reflection_question,m.optional_scripture,m.safety_note].filter(Boolean))assert.ok(html.includes(text),m.slug+': missing supplied text');
+ assert.equal(html.includes('<details'),Boolean(m.optional_scripture));
+ assert.equal(html.includes('Support and safety note'),Boolean(m.safety_note));
+ assert.ok(html.includes('not published'));
+}
+const query=fs.readFileSync('lib/daily-recovery.js','utf8');
+for(const filter of ['status=eq.published','clinical_review_status=eq.approved','spiritual_review_status=eq.approved'])assert.ok(query.includes(filter));
+assert.ok(query.includes('Africa/Nairobi'));
+assert.ok(!query.includes('dbAdminSelect'));
+assert.ok(fs.readFileSync('app/knowledge/page.js','utf8').includes('href="/knowledge/daily-recovery"'));
+console.log('PASS five distinct entries, exact rendered passages, order, feature, optional scripture, separate safety note, review state, public approval filters and Nairobi date formatting');

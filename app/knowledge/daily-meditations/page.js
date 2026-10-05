@@ -2,7 +2,7 @@ import DailyMeditationsLibrary from '@/components/knowledge/DailyMeditationsLibr
 import {dbSelect} from '@/lib/supabase-rest';
 
 export default async function DailyMeditationsPage(){
-  const todayIso=new Date().toISOString().slice(0,10);
+  const todayIso=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Nairobi',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   let meditations=[];
   try{
     meditations=await dbSelect('meditations','status=eq.published&clinical_review_status=eq.approved&spiritual_review_status=eq.approved&select=id,slug,title,excerpt,body,reflection_question,practice,meditation_date,theme,reading_time_minutes,published_at&order=meditation_date.desc&limit=366');
