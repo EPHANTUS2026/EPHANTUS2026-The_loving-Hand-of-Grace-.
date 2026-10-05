@@ -4,6 +4,14 @@
 
 :root { color-scheme: light; }
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #166534;
+  outline-offset: 4px;
+}
 body { @apply bg-white text-slate-800 antialiased; }
 .container-page { @apply mx-auto max-w-7xl px-5 sm:px-6 lg:px-8; }
 .section { @apply py-16 sm:py-20 lg:py-24; }
@@ -14,3 +22,27 @@ body { @apply bg-white text-slate-800 antialiased; }
 .btn-primary { @apply inline-flex items-center justify-center rounded-full bg-grace-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-grace-900 focus:outline-none focus:ring-2 focus:ring-grace-500 focus:ring-offset-2; }
 .btn-secondary { @apply inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-grace-700 hover:text-grace-800; }
 .input{width:100%;border:1px solid rgb(226 232 240);border-radius:.75rem;padding:.625rem .75rem;background:white;font-size:.875rem}.btn{border-radius:.75rem;background:rgb(15 23 42);color:white;padding:.625rem 1rem;font-size:.875rem;font-weight:700}.btn:disabled{opacity:.5}
+
+/* Photo-backed text: one overlay, never foreground opacity. The text column
+   is at most 56rem inside the existing 80rem container. Keep its complete
+   bounding width protected; wrapping/expansion cannot enter the fade. */
+.image-text-overlay {
+  background: rgba(255, 255, 255, 0.70);
+}
+.image-banner-description { color: #1e293b; }
+.image-banner-label { color: #26473f; }
+@media (min-width: 1024px) {
+  .image-text-overlay {
+    --overlay-safe-edge: min(100%, calc(max(2rem, (100% - 80rem) / 2 + 2rem) + 56rem));
+  }
+  .image-text-overlay[data-direction="left"] {
+    background: linear-gradient(to right, rgba(255,255,255,.70) 0%, rgba(255,255,255,.70) var(--overlay-safe-edge), rgba(255,255,255,.575) 100%);
+  }
+  .image-text-overlay[data-direction="right"] {
+    background: linear-gradient(to left, rgba(255,255,255,.70) 0%, rgba(255,255,255,.70) var(--overlay-safe-edge), rgba(255,255,255,.575) 100%);
+  }
+  .image-text-overlay[data-direction="center"] {
+    --overlay-clear-edge: max(0%, calc((100% - 56rem) / 2 - 2rem));
+    background: linear-gradient(to right, rgba(255,255,255,.575) 0%, rgba(255,255,255,.70) var(--overlay-clear-edge), rgba(255,255,255,.70) calc(100% - var(--overlay-clear-edge)), rgba(255,255,255,.575) 100%);
+  }
+}

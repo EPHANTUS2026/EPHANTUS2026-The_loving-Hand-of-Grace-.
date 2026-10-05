@@ -4,6 +4,8 @@ import {useMemo,useState} from 'react';
 import Link from 'next/link';
 import {SparklesIcon,BookmarkIcon,CheckCircleIcon,CalendarDaysIcon,MagnifyingGlassIcon} from '@heroicons/react/24/outline';
 
+function meditationDate(m,month='long'){return m.published_at?new Date(m.published_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi',month,day:'numeric'}):m.meditation_date?new Date(m.meditation_date+'T12:00:00+03:00').toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi',month,day:'numeric'}):'Reflection';}
+
 const themes=['All','Acceptance','Courage','Hope','Gratitude','Relationships','Recovery','Self-awareness','Forgiveness','Resilience','Purpose','Reintegration','Family','Mindfulness'];
 
 export default function DailyMeditationsLibrary({meditations=[],todayIso}){
@@ -31,13 +33,13 @@ export default function DailyMeditationsLibrary({meditations=[],todayIso}){
 
   return <main className="min-h-screen bg-[linear-gradient(180deg,#fbfbff,#f7f7fb)] text-slate-900">
     <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:py-16">
-      <div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.18em] text-violet-700">Daily Meditations</div><h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">A moment for today. A library for the journey.</h1><p className="mt-4 text-lg leading-8 text-slate-600">Short, approved reflections to support recovery, self-awareness, hope and personal growth.</p></div>
+      <div className="max-w-3xl"><Link href="/knowledge/daily-recovery" className="mb-4 inline-flex min-h-11 items-center font-bold text-violet-700 underline">Open Daily Recovery →</Link><div className="text-xs font-black uppercase tracking-[.18em] text-violet-700">Daily Meditations</div><h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">A moment for today. A library for the journey.</h1><p className="mt-4 text-lg leading-8 text-slate-600">Short, approved reflections to support recovery, self-awareness, hope and personal growth.</p></div>
 
       {!meditations.length&&<div className="mt-10 rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-100"><h2 className="text-xl font-black">No published meditations yet</h2><p className="mt-2 text-slate-600">Approved Daily Meditations will appear here after clinical and spiritual review.</p></div>}
 
       {selected&&<section className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_.7fr]">
         <article className="rounded-[30px] bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,.06)] ring-1 ring-slate-100 sm:p-8">
-          <div className="text-xs font-black uppercase tracking-[.16em] text-violet-700">{new Date(`${selected.meditation_date}T12:00:00`).toLocaleDateString('en-KE',{month:'long',day:'numeric'}).toUpperCase()}</div>
+          <div className="text-xs font-black uppercase tracking-[.16em] text-violet-700">{meditationDate(selected).toUpperCase()}</div>
           <h2 className="mt-3 text-3xl font-black">{selected.title}</h2>
           <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold"><span className="rounded-full bg-violet-50 px-3 py-1.5 text-violet-700">{selected.theme}</span><span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{selected.reading_time_minutes} min read</span></div>
           <div className="mt-7 whitespace-pre-line text-[17px] leading-8 text-slate-700">{selected.body}</div>
@@ -51,7 +53,7 @@ export default function DailyMeditationsLibrary({meditations=[],todayIso}){
 
       {!!meditations.length&&<section className="mt-12"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-2xl font-black">Browse all meditations</h2><p className="mt-1 text-sm text-slate-500">Explore by theme or return to a previous date.</p></div><div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500"><CalendarDaysIcon className="h-5 w-5"/>{meditations.length} reflections available</div></div>
       <div className="mt-5 flex flex-col gap-3 lg:flex-row"><label className="relative flex-1"><span className="sr-only">Search meditations</span><MagnifyingGlassIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search meditations..." className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"/></label><select aria-label="Filter meditation theme" value={theme} onChange={e=>setTheme(e.target.value)} className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:ring-2 focus:ring-violet-100">{themes.map(t=><option key={t}>{t}</option>)}</select></div>
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map(m=><button key={m.id} onClick={()=>setSelected(m)} className="min-h-44 rounded-3xl bg-white p-5 text-left shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-400"><div className="text-[11px] font-black uppercase tracking-[.13em] text-violet-700">{m.theme}</div><h3 className="mt-2 text-xl font-black">{m.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{m.excerpt||m.body}</p><div className="mt-4 text-xs font-semibold text-slate-400">{new Date(`${m.meditation_date}T12:00:00`).toLocaleDateString('en-KE',{month:'short',day:'numeric'})} · {m.reading_time_minutes} min</div></button>)}</div></section>}
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map(m=><button key={m.id} onClick={()=>setSelected(m)} className="min-h-44 rounded-3xl bg-white p-5 text-left shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-400"><div className="text-[11px] font-black uppercase tracking-[.13em] text-violet-700">{m.theme}</div><h3 className="mt-2 text-xl font-black">{m.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{m.excerpt||m.body}</p><div className="mt-4 text-xs font-semibold text-slate-400">{meditationDate(m,'short')} · {m.reading_time_minutes} min</div></button>)}</div></section>}
     </section>
   </main>;
 }

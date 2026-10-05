@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {requireSession} from '@/lib/auth';
 import {dbSelect} from '@/lib/supabase-rest';
 import GraceExperience from '@/components/grace/GraceExperience';
+import MyRecoveryHome from '@/components/portal/MyRecoveryHome';
 
 export default async function Portal(){
  const session=await requireSession(['client']);
@@ -9,6 +10,7 @@ export default async function Portal(){
  const linked=Boolean(session.profile.client_id);
  const checkins=linked?await dbSelect('grace_checkins',`client_id=eq.${encodeURIComponent(session.profile.client_id)}&select=id,mood_score,craving_level,coping_tool,created_at&order=created_at.desc&limit=14`,session.token).catch(()=>[]):[];
  return <>
+   <MyRecoveryHome name={name} linked={linked}/>
    <section className="bg-[linear-gradient(180deg,#faf8ff_0%,#f7f8fc_100%)] px-4 pt-5 sm:px-6 lg:px-8">
      <div className="mx-auto max-w-[1400px]">
        <Link
@@ -26,6 +28,6 @@ export default async function Portal(){
        </Link>
      </div>
    </section>
-   <GraceExperience name={name} clinicLinked={linked} initialCheckins={checkins||[]} authenticated/>
+   <div id="daily-check-in"><GraceExperience name={name} clinicLinked={linked} initialCheckins={checkins||[]} authenticated/></div>
  </>;
 }
