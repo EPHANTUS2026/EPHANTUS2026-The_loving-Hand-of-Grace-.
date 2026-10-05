@@ -15,7 +15,7 @@ export default async function Portal(){
      <div className="mx-auto max-w-[1400px]">
        <Link
          href="/portal/recovery-passport"
-         className="group flex min-h-28 items-center justify-between gap-5 rounded-[28px] border border-violet-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-500 sm:p-6"
+         className="group flex min-h-28 items-center justify-between gap-5 rounded-[28px] border border-violet-100 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-violet-500 sm:p-6"
          aria-label="Open My Recovery Passport"
        >
          <div>

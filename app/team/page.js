@@ -54,7 +54,7 @@ const team=[
 ];
 
 function PortraitPlaceholder({role}){
-  return <div className="grid aspect-[4/3] place-items-center rounded-[1.5rem] bg-gradient-to-br from-grace-50 to-slate-100 text-center">
+  return <div className="grid aspect-4/3 place-items-center rounded-3xl bg-linear-to-br from-grace-50 to-slate-100 text-center">
     <div><div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-grace-200 bg-white text-2xl font-black text-grace-700">{role.split(' ').map(word=>word[0]).join('').slice(0,2)}</div><p className="mt-3 text-xs font-bold uppercase tracking-[.16em] text-slate-500">Profile image coming soon</p></div>
   </div>
 }
@@ -67,7 +67,7 @@ export default function TeamPage(){
       <div className="max-w-3xl"><p className="eyebrow">Support team</p><h2 className="h2">Different disciplines. One commitment to recovery.</h2><p className="lead">These profiles describe each professional docket. Names, credentials, registration details and approved photographs can be added to the relevant profile once confirmed.</p></div>
       <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {team.map(member=><article key={member.role} className="card min-w-0 overflow-hidden">
-          {member.photo ? <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-white"><Image src={member.photo} alt={`${member.name ? `${member.name}, ` : ''}${member.role} at Loving Hand of Grace`} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-contain"/></div> : <PortraitPlaceholder role={member.role}/>}
+          {member.photo ? <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-white"><Image src={member.photo} alt={`${member.name ? `${member.name}, ` : ''}${member.role} at Loving Hand of Grace`} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-contain"/></div> : <PortraitPlaceholder role={member.role}/>}
           {member.name && <p className="mt-4 text-lg font-bold tracking-wide text-slate-950">{member.name}</p>}
           <div className="mt-6 text-xs font-black uppercase tracking-[.16em] text-grace-700">{member.docket}</div>
           <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{member.role}</h3>

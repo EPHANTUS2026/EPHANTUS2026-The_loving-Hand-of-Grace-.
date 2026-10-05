@@ -35,7 +35,7 @@ export default function GraceAmbient(){
     </div>}
     <button onClick={()=>setExpanded(v=>!v)} aria-expanded={expanded} aria-label={label} className="group flex items-center gap-2 rounded-full border border-grace-200 bg-white px-4 py-3 font-bold text-grace-900 shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 hover:border-grace-300 hover:shadow-2xl">
       <span className="grid h-8 w-8 place-items-center rounded-full bg-grace-800 text-white"><SparklesIcon className="h-4 w-4"/></span>
-      <span className="max-w-[13rem] truncate text-sm">{label}</span>
+      <span className="max-w-52 truncate text-sm">{label}</span>
     </button>
   </div>;
 }

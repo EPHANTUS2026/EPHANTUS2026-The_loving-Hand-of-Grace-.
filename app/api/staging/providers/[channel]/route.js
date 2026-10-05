@@ -7,7 +7,8 @@ function maskRecipient(value=''){
  if(v.includes('@')){const [u,d]=v.split('@');return `${u.slice(0,2)}***@${d}`}
  return v.length>6?`${v.slice(0,4)}***${v.slice(-3)}`:'***';
 }
-export async function POST(req,{params}){
+export async function POST(req, props) {
+ const params = await props.params;
  if(process.env.APP_ENV!=='staging')return NextResponse.json({error:'Not available outside staging.'},{status:404});
  if(!allowed.has(params.channel))return NextResponse.json({error:'Unsupported channel.'},{status:400});
  const auth=req.headers.get('authorization')||'';

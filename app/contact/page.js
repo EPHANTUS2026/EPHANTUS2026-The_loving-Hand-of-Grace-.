@@ -5,7 +5,7 @@ import { centre } from '@/lib/config';
 import { services, serviceSlugs } from '@/lib/services';
 import { validateEnquiry } from '@/lib/contact-validation.mjs';
 
-const inputClass = 'rounded-2xl border border-slate-300 px-4 py-3 font-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grace-700';
+const inputClass = 'rounded-2xl border border-slate-300 px-4 py-3 font-normal focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grace-700';
 export default function Contact() {
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
@@ -30,7 +30,7 @@ export default function Contact() {
   return <><PageHero backgroundImage="/images/contact/garden-path.webp" eyebrow="Contact" title="Start with a confidential enquiry." description="Leave your contact details and the service you would like to discuss. Suitability and private care information are discussed during assessment." />
     <section className="section"><div className="container-page grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
       <aside className="space-y-5"><div className="card"><h2 className="text-xl font-bold">Contact the Centre</h2>
-        <dl className="mt-6 space-y-5">{[['Phone', centre.phone], ['Email', centre.email], ['Location', centre.address], ['Enquiry hours', centre.hours]].map(([label, value]) => <div key={label}><dt className="text-sm font-bold">{label}</dt><dd className="mt-1 break-words text-slate-600">{value || 'Contact the Centre for details'}</dd></div>)}</dl>
+        <dl className="mt-6 space-y-5">{[['Phone', centre.phone], ['Email', centre.email], ['Location', centre.address], ['Enquiry hours', centre.hours]].map(([label, value]) => <div key={label}><dt className="text-sm font-bold">{label}</dt><dd className="mt-1 wrap-break-word text-slate-600">{value || 'Contact the Centre for details'}</dd></div>)}</dl>
         <div className="mt-6 flex flex-wrap gap-3"><a className="btn-primary" href={'tel:' + centre.phone.replace(/[^+0-9]/g, '')}>Speak to the Centre</a><a className="btn-secondary" href={'mailto:' + centre.email}>Email the Centre</a></div>
       </div><p className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm leading-6 text-amber-950"><strong>Urgent concern:</strong> this form is not an emergency service. Contact local emergency services or go to the nearest hospital if someone is in immediate danger or needs urgent medical or psychiatric care.</p></aside>
       <form onSubmit={submit} className="card grid gap-5" aria-label="Confidential enquiry" aria-describedby="enquiry-privacy">

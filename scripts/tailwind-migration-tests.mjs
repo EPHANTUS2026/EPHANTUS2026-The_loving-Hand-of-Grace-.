@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const css=readFileSync('app/globals.css','utf8');
+const pkg=JSON.parse(readFileSync('package.json','utf8'));
+assert.equal(pkg.devDependencies.tailwindcss,'4.3.3');
+assert.equal(pkg.devDependencies['@tailwindcss/postcss'],'4.3.3');
+assert.ok(!pkg.devDependencies.autoprefixer);
+assert.ok(css.includes("@import 'tailwindcss' source(none)"));
+assert.ok(css.includes("@source './'"));
+assert.ok(css.includes("@source '../components'"));
+for(const value of ['--color-grace-800: #2a544b','--color-gold-500: #bf9640','--color-slate-800: #1e293b','--breakpoint-lg: 1024px','rgba(255, 255, 255, 0.70)','rgba(255,255,255,.575)','prefers-reduced-motion: reduce','a:focus-visible','--shadow-soft: 0 20px 60px rgba(20, 55, 45, 0.1)'])assert.ok(css.includes(value),value);
+const hero=readFileSync('components/PageHero.js','utf8');
+assert.ok(hero.includes('lg:aspect-(--banner-aspect)'));
+assert.ok(hero.includes('banner.width} / ${banner.height'));
+assert.ok(hero.includes('lg:py-0'));
+console.log('PASS Tailwind 4 pins, active-source scope, original brand palette, breakpoints, overlays, focus, reduced motion and banner aspect contract');

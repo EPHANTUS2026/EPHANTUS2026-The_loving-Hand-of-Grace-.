@@ -8,7 +8,7 @@ const links = [['About','/about'],['Treatment','/programs'],['Recovery Journey',
 
 export default function Header(){
   const [open,setOpen]=useState(false);
-  return <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+  return <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
     <div className="container-page flex h-20 items-center justify-between">
       <Link href="/" className="flex min-w-0 items-center gap-3" onClick={()=>setOpen(false)}>
         <Image src="/images/brand/lhg-logo.jpg" alt="" width={56} height={56} priority className="h-14 w-14 shrink-0 rounded-xl object-contain"/>

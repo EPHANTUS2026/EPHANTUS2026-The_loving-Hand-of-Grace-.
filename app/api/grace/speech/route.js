@@ -17,10 +17,10 @@ export async function POST(req){
   const text=speechText(body.text);if(!text)return error(400,'No readable response text.');
   // Protected portal responses are not sent to a new external provider in this rollout.
   if(await getSession())return error(403,'External voice playback is unavailable for signed-in conversations.');
-  const owner=cookies().get('lhg_grace_browser')?.value;const secret=process.env.GRACE_CONVERSATION_SECRET;
+  const owner=(await cookies()).get('lhg_grace_browser')?.value;const secret=process.env.GRACE_CONVERSATION_SECRET;
   if(!owner||!secret||secret.length<32)return error(503,'Start a Grace conversation before voice playback.');
   const key=createHmac('sha256',secret).update('speech:'+owner).digest('hex');
-  if(!await dbRpc('consume_grace_model_quota',{p_key:key}))return error(429,'Voice playback limit reached. Try again later.');
+  if(!(await dbRpc('consume_grace_model_quota',{p_key:key})))return error(429,'Voice playback limit reached. Try again later.');
   const audio=await synthesizeSpeech({text,language:body.language,signal:req.signal});
   return new Response(audio,{headers:{...headers,'Content-Type':'audio/mpeg','X-Grace-Voice':speechVoices[body.language].name}});
  }catch{return error(503,'Grace’s female voice is unavailable. Please try again later.');}

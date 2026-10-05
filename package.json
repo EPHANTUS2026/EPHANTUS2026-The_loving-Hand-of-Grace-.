@@ -42,17 +42,24 @@
     "test:operational-health": "node scripts/operational-health-tests.mjs",
     "test:notification-delivery": "node scripts/notification-delivery-tests.mjs",
     "staging:staff-relationships": "node scripts/staging/staff-relationship-authority.mjs",
-    "test:daily-recovery": "node scripts/daily-recovery-tests.mjs"
+    "test:daily-recovery": "node scripts/daily-recovery-tests.mjs",
+    "test:launch-repairs": "node scripts/scheduler-cycle-tests.mjs && node scripts/provider-health-tests.mjs && node scripts/contact-tests.mjs && node scripts/tailwind-migration-tests.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "next": "^14.2.25",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17"
+    "@tailwindcss/postcss": "4.3.3",
+    "postcss": "8.5.29",
+    "sucrase": "3.35.1",
+    "tailwindcss": "4.3.3"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.29"
+    }
   }
 }

@@ -4,11 +4,13 @@ import {publishedMeditation} from '@/lib/daily-recovery';
 import MeditationReading from '@/components/knowledge/MeditationReading';
 import MeditationShare from '@/components/knowledge/MeditationShare';
 export const dynamic='force-dynamic';
-export async function generateMetadata({params}){
+export async function generateMetadata(props) {
+ const params = await props.params;
  const m=await publishedMeditation(params.slug).catch(()=>null);
  return m?{title:m.title+' | Daily Recovery',description:'A reflection for '+m.theme.toLowerCase()+'.'}:{title:'Meditation unavailable',robots:{index:false,follow:false}};
 }
-export default async function MeditationPage({params}){
+export default async function MeditationPage(props) {
+ const params = await props.params;
  const m=await publishedMeditation(params.slug);
  if(!m)notFound();
  return <main className="section bg-slate-50"><div className="mx-auto max-w-3xl px-4 sm:px-6">

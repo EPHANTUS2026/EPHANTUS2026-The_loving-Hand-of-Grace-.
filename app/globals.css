@@ -1,6 +1,140 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss' source(none);
+@source './';
+@source '../components';
+
+@theme {
+  /* Preserve the original v3 palette; this is not a redesign. */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-200: #fecdd3;
+  --color-rose-300: #fda4af;
+  --color-rose-400: #fb7185;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-rose-700: #be123c;
+  --color-rose-800: #9f1239;
+  --color-rose-900: #881337;
+  --color-rose-950: #4c0519;
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-red-950: #450a0a;
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #0284c7;
+  --color-sky-700: #0369a1;
+  --color-sky-800: #075985;
+  --color-sky-900: #0c4a6e;
+  --color-sky-950: #082f49;
+  --color-violet-50: #f5f3ff;
+  --color-violet-100: #ede9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+  --color-violet-800: #5b21b6;
+  --color-violet-900: #4c1d95;
+  --color-violet-950: #2e1065;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --color-grace-50: #f5faf8;
+  --color-grace-100: #e8f5f0;
+  --color-grace-200: #cfe9df;
+  --color-grace-300: #a8d6c5;
+  --color-grace-400: #76bca5;
+  --color-grace-500: #4a9e86;
+  --color-grace-600: #387f6d;
+  --color-grace-700: #30675a;
+  --color-grace-800: #2a544b;
+  --color-grace-900: #26473f;
+
+  --color-gold-400: #d6b35a;
+  --color-gold-500: #bf9640;
+  --color-gold-600: #9f772f;
+
+  --shadow-soft: 0 20px 60px rgba(20, 55, 45, 0.1);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  input::placeholder, textarea::placeholder { color: var(--color-gray-400); opacity: 1; }
+  button, [role="button"] { cursor: pointer; }
+  button:disabled, [role="button"][aria-disabled="true"] { cursor: default; }
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 :root { color-scheme: light; }
 html { scroll-behavior: smooth; }
@@ -19,7 +153,7 @@ body { @apply bg-white text-slate-800 antialiased; }
 .h2 { @apply mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl; }
 .lead { @apply mt-4 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg; }
 .card { @apply rounded-3xl border border-slate-200 bg-white p-7 shadow-soft; }
-.btn-primary { @apply inline-flex items-center justify-center rounded-full bg-grace-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-grace-900 focus:outline-none focus:ring-2 focus:ring-grace-500 focus:ring-offset-2; }
+.btn-primary { @apply inline-flex items-center justify-center rounded-full bg-grace-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-grace-900 focus:outline-hidden focus:ring-2 focus:ring-grace-500 focus:ring-offset-2; }
 .btn-secondary { @apply inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-grace-700 hover:text-grace-800; }
 .input{width:100%;border:1px solid rgb(226 232 240);border-radius:.75rem;padding:.625rem .75rem;background:white;font-size:.875rem}.btn{border-radius:.75rem;background:rgb(15 23 42);color:white;padding:.625rem 1rem;font-size:.875rem;font-weight:700}.btn:disabled{opacity:.5}
 

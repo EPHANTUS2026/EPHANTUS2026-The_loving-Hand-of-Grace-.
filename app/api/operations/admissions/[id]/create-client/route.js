@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { authorised, field, nullable } from '@/lib/route-auth';
 import { dbSelect, dbInsert, dbUpdate } from '@/lib/supabase-rest';
 const roles=['admissions','clinician','counsellor','administrator','super_admin'];
-export async function POST(req,{params}){
- const s=await authorised(roles); if(!s)return NextResponse.json({error:'Forbidden'},{status:403});
- const rows=await dbSelect('admissions',`id=eq.${encodeURIComponent(params.id)}&select=*`,s.token); const a=rows?.[0];
+export async function POST(req, props) {
+ const params = await props.params;
+ const s=await authorised(roles);if(!s)return NextResponse.json({error:'Forbidden'},{status:403});
+ const rows=await dbSelect('admissions',`id=eq.${encodeURIComponent(params.id)}&select=*`,s.token);const a=rows?.[0];
  if(!a)return NextResponse.json({error:'Admission not found'},{status:404});
  if(a.client_id)return NextResponse.redirect(new URL(`/staff/clients/${a.client_id}`,req.url),303);
- const fd=await req.formData(); const legalName=field(fd,'legal_name',160)||a.enquiry_name; if(!legalName)return NextResponse.json({error:'Client name is required'},{status:400});
+ const fd=await req.formData();const legalName=field(fd,'legal_name',160)||a.enquiry_name;if(!legalName)return NextResponse.json({error:'Client name is required'},{status:400});
  const code=`LHG-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
  const client=(await dbInsert('clients',{client_code:code,legal_name:legalName,preferred_name:nullable(field(fd,'preferred_name',100)),date_of_birth:nullable(field(fd,'date_of_birth',20)),phone:a.enquiry_phone||nullable(field(fd,'phone',40)),email:a.enquiry_email||nullable(field(fd,'email',160)),admission_stage:a.stage,primary_programme:nullable(field(fd,'primary_programme',120)),preferred_language:field(fd,'preferred_language',40)||'English',assigned_staff_id:a.assigned_staff_id||null},{token:s.token,admin:false}))?.[0];
  await dbUpdate('admissions',`id=eq.${encodeURIComponent(a.id)}`,{client_id:client.id,updated_at:new Date().toISOString()},{token:s.token,admin:false});
