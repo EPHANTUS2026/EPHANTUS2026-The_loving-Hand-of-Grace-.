@@ -20,3 +20,18 @@ const data={fullName:'Synthetic Staff',jobTitle:'Staff',email:'staff@example.tes
 await inviteStaff({user:{id:'owner'}},data);assert.deepEqual(events,['staff_account_reserve','staff_account_finish']);
 events=[];process.env.STAFF_INVITES_ENABLED='false';await assert.rejects(inviteStaff({user:{id:'owner'}},data));assert.deepEqual(events,[]);
 console.log('PASS invitation API origin/auth denial, malformed/oversized requests, redacted errors, configured provider flow, disabled-send denial. Provider calls mocked: no actual delivery claim.');
+let verified=true,pending=true,acceptCalls=[];
+globalThis.__acceptAuth=async(path)=>{acceptCalls.push(path);return path==='/user'?{id:'synthetic-auth-id',email_confirmed_at:verified?'2026-10-06T00:00:00Z':null}:{};};
+globalThis.__acceptSelect=async()=>pending?[{id:'invitation'}]:[];
+globalThis.__acceptRpc=async()=>{acceptCalls.push('activated');};
+globalThis.__acceptResponse={json:(data,opts={})=>{const r=new Response(JSON.stringify(data),{status:opts.status||200,headers:opts.headers});r.cookies={set:()=>acceptCalls.push('cookie')};return r;}};
+source=fs.readFileSync('app/api/auth/accept-invitation/route.js','utf8').replace("import {NextResponse} from 'next/server';",'const NextResponse=globalThis.__acceptResponse;').replace("import {authRequest} from '@/lib/staff-accounts/service';",'const authRequest=globalThis.__acceptAuth;').replace("import {dbAdminSelect,dbRpc} from '@/lib/supabase-rest';",'const dbAdminSelect=globalThis.__acceptSelect,dbRpc=globalThis.__acceptRpc;');
+const {POST:accept}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const acceptReq=(data,origin='https://lhg.test')=>new Request('https://lhg.test/api/auth/accept-invitation',{method:'POST',headers:{origin},body:JSON.stringify(data)});
+const acceptance={token:'synthetic-token',password:'synthetic-password-only'};
+assert.equal((await accept(acceptReq(acceptance,'https://evil.test'))).status,403);assert.deepEqual(acceptCalls,[]);
+assert.equal((await accept(acceptReq({...acceptance,password:'short'}))).status,400);assert.deepEqual(acceptCalls,[]);
+verified=false;assert.equal((await accept(acceptReq(acceptance))).status,400);assert.deepEqual(acceptCalls,['/user']);
+verified=true;pending=false;acceptCalls=[];assert.equal((await accept(acceptReq(acceptance))).status,400);assert.deepEqual(acceptCalls,['/user']);
+pending=true;acceptCalls=[];assert.equal((await accept(acceptReq(acceptance))).status,200);assert.deepEqual(acceptCalls,['/user','/user','activated','cookie']);
+console.log('PASS invitation acceptance API origin/password/email/pending checks; HttpOnly session established only after activation. Synthetic mocked tokens only.');
