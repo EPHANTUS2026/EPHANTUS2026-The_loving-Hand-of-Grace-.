@@ -1,0 +1,3 @@
+import Link from 'next/link';import ConfirmAccount from '../auth/confirm/ConfirmAccount';
+export const metadata={title:'Reset your password',robots:{index:false,follow:false},referrer:'no-referrer'};
+export default function Reset(){return <section className="bg-grace-50 px-5 py-16"><div className="mx-auto max-w-lg rounded-3xl bg-white p-8"><h1 className="mb-5 text-2xl font-black">Reset your password</h1><ConfirmAccount reset/><Link href="/login" className="mt-5 inline-block underline">Return to personal sign-in</Link><Link href="/staff-login" className="mt-3 block underline">Return to staff sign-in</Link></div></section>;}

@@ -19,6 +19,6 @@ for(const role of ['client','family','clinician']){
 }
 for(const role of adminRoles){session={profile:{role,is_active:true}};assert.equal(await auth.requireSession(adminRoles),session);}
 session={profile:{role:'director',is_active:false}};
-await assert.rejects(auth.requireSession(STAFF_ROLES),e=>e.path==='/login');
-session=null;await assert.rejects(auth.requireSession(STAFF_ROLES),e=>e.path==='/login');
+await assert.rejects(auth.requireSession(STAFF_ROLES),e=>e.path==='/staff-login');
+session=null;await assert.rejects(auth.requireSession(STAFF_ROLES),e=>e.path==='/staff-login');
 console.log('PASS Director denial lands on an authorised staff route; management grants unchanged; client/family/clinical administration denial and inactive/anonymous login enforced. Session boundaries mocked; authenticated browser acceptance remains separate.');

@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';
+import {authPublic,publicProfile,sessionCookies,publicHome} from '@/lib/public-auth/service';
+export async function GET(req){try{const code=new URL(req.url).searchParams.get('code'),verifier=req.cookies.get('lhg_pkce')?.value;if(!code||!verifier)throw Error();const data=await authPublic('/token?grant_type=pkce',{body:{auth_code:code,code_verifier:verifier}});const {profile}=await publicProfile(data.access_token);const res=NextResponse.redirect(new URL(publicHome(profile.role),req.url));res.cookies.set('lhg_pkce','',{path:'/',maxAge:0});sessionCookies(res,data);return res;}catch{const res=NextResponse.redirect(new URL('/login',req.url));res.cookies.set('lhg_pkce','',{path:'/',maxAge:0});return res;}}

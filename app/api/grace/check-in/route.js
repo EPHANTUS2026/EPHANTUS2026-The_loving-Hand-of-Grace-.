@@ -5,7 +5,7 @@ const headers={'Cache-Control':'private, no-store'};
 export async function POST(req){
  if(req.headers.get('origin')!==new URL(req.url).origin)return NextResponse.json({error:'Invalid request origin.'},{status:403,headers});
  const session=await getSession();
- if(!session?.profile?.is_active||session.profile.role!=='client'||!session.profile.client_id)return NextResponse.json({error:'Authentication required.'},{status:401,headers});
+ if(!session?.profile?.is_active||!(['client','member'].includes(session.profile.role))||(session.profile.role==='client'&&!session.profile.client_id))return NextResponse.json({error:'Authentication required.'},{status:401,headers});
  let payload,key;
  try{
   const reader=req.body.getReader();let size=0;const chunks=[];

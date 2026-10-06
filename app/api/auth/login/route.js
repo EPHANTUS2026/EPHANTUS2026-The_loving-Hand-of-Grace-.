@@ -1,12 +1,5 @@
-import { NextResponse } from 'next/server';
-import { signIn } from '@/lib/supabase-rest';
-export async function POST(req){
-  const form=await req.formData(); const email=String(form.get('email')||'').trim(); const password=String(form.get('password')||'');
-  try{
-    const data=await signIn(email,password);
-    const res=NextResponse.redirect(new URL('/api/auth/route-user',req.url),303);
-    res.cookies.set('lhg_access',data.access_token,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:data.expires_in||3600});
-    if(data.refresh_token) res.cookies.set('lhg_refresh',data.refresh_token,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:60*60*24*30});
-    return res;
-  }catch{return NextResponse.redirect(new URL('/login?error=1',req.url),303)}
-}
+import {NextResponse} from 'next/server';
+import {signIn,getAuthUser,dbSelect} from '@/lib/supabase-rest';
+import {STAFF_ROLES} from '@/lib/roles';
+import {sessionCookies,publicAuthQuota} from '@/lib/public-auth/service';
+export async function POST(req){if(req.headers.get('origin')!==new URL(req.url).origin)return NextResponse.json({error:'Invalid request origin.'},{status:403});try{await publicAuthQuota(req);const form=await req.formData();const email=String(form.get('email')||'').trim(),password=String(form.get('password')||'');if(email.length>254||password.length>128)throw Error();const data=await signIn(email,password),user=await getAuthUser(data.access_token);const profiles=await dbSelect('profiles',`auth_user_id=eq.${encodeURIComponent(user.id)}&select=role,is_active`,data.access_token);if(!profiles[0]?.is_active||!STAFF_ROLES.includes(profiles[0].role))throw Error();const res=NextResponse.redirect(new URL('/api/auth/route-user',req.url),303);sessionCookies(res,data);return res;}catch{return NextResponse.redirect(new URL('/staff-login?error=1',req.url),303);}}

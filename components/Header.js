@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon, PhoneIcon } from '@heroicons/react/24/outline';
 
-const links = [['About','/about'],['Treatment','/programs'],['Recovery Journey','/recovery-journey'],['Families','/family'],['Life at Grace','/life-at-grace'],['Knowledge','/knowledge'],['Contact','/contact'],['My Space','/portal']];
+const links = [['About','/about'],['Treatment','/programs'],['Recovery Journey','/recovery-journey'],['Life at Grace','/life-at-grace'],['Knowledge','/knowledge'],['Contact','/contact'],['Staff portal','/staff-login'],['My account','/login']];
 
 export default function Header(){
   const [open,setOpen]=useState(false);
