@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';
+let session={user:{id:'owner'},profile:{role:'super_admin',is_active:true}},calls=0,fail=false;
+globalThis.__staffAdmin=async()=>session;
+globalThis.__staffInvite=async()=>{calls++;if(fail)throw Error('Provider credential secret detail');return {message:'Invitation accepted; delivery unconfirmed.'};};
+let source=fs.readFileSync('app/api/admin/staff-accounts/route.js','utf8').replace("import {accountAdmin,inviteStaff} from '@/lib/staff-accounts/service';",'const accountAdmin=globalThis.__staffAdmin,inviteStaff=globalThis.__staffInvite;');
+const {POST}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const req=(body,origin='https://lhg.test')=>new Request('https://lhg.test/api/admin/staff-accounts',{method:'POST',headers:{origin},body});
+assert.equal((await POST(req('{}','https://evil.test'))).status,403);assert.equal(calls,0);
+session=null;assert.equal((await POST(req('{}'))).status,403);assert.equal(calls,0);
+session={user:{id:'owner'}};assert.equal((await POST(req('{'))).status,400);assert.equal((await POST(req('x'.repeat(4097)))).status,413);
+assert.equal((await POST(req('{}'))).status,200);fail=true;const r=await POST(req('{}'));assert.equal(r.status,400);assert.equal((await r.text()).includes('secret'),false);
+// Run real invitation service with injected Auth/database adapters; no network or email.
+let events=[];globalThis.__accountRpc=async(name,args)=>{events.push(name);if(name==='staff_account_reserve')return 'reservation';};
+globalThis.__accountAuth=async()=>({id:'synthetic-auth-id'});
+process.env.STAFF_INVITE_ORIGIN='https://lhg.test';process.env.STAFF_INVITES_ENABLED='true';
+source=fs.readFileSync('lib/staff-accounts/service.js','utf8').replace("import {getSession,dbAdminSelect,dbRpc} from '@/lib/supabase-rest';",'const getSession=async()=>null,dbAdminSelect=async()=>[],dbRpc=globalThis.__accountRpc;').replace("from './policy.mjs'",`from '${new URL('../lib/staff-accounts/policy.mjs',import.meta.url)}'`);
+source=source.slice(0,source.indexOf('export async function authRequest'))+source.slice(source.indexOf('export async function inviteStaff'));source='const authRequest=globalThis.__accountAuth;\n'+source;
+const {inviteStaff}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const data={fullName:'Synthetic Staff',jobTitle:'Staff',email:'staff@example.test',confirm:true};
+await inviteStaff({user:{id:'owner'}},data);assert.deepEqual(events,['staff_account_reserve','staff_account_finish']);
+events=[];process.env.STAFF_INVITES_ENABLED='false';await assert.rejects(inviteStaff({user:{id:'owner'}},data));assert.deepEqual(events,[]);
+console.log('PASS invitation API origin/auth denial, malformed/oversized requests, redacted errors, configured provider flow, disabled-send denial. Provider calls mocked: no actual delivery claim.');
