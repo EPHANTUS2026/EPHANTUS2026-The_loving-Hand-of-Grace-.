@@ -64,7 +64,7 @@ export default function TeamPage(){
     <PageHero backgroundImage="/images/team/team-background.webp" eyebrow="Our Team" title="The people behind care, recovery and everyday support." description="Our multidisciplinary support team brings together leadership, operations, mental-health expertise, counselling and nursing support around the person and their recovery journey."/>
 
     <section className="section"><div className="container-page">
-      <div className="max-w-3xl"><p className="eyebrow">Support team</p><h2 className="h2">Different disciplines. One commitment to recovery.</h2><p className="lead">These profiles describe each professional docket. Names, credentials, registration details and approved photographs can be added to the relevant profile once confirmed.</p></div>
+      <div className="max-w-3xl"><p className="eyebrow">Support team</p><h2 className="h2">Different disciplines. One commitment to recovery.</h2></div>
       <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {team.map(member=><article key={member.role} className="card min-w-0 overflow-hidden">
           {member.photo ? <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-white"><Image src={member.photo} alt={`${member.name ? `${member.name}, ` : ''}${member.role} at Loving Hand of Grace`} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-contain"/></div> : <PortraitPlaceholder role={member.role}/>}
