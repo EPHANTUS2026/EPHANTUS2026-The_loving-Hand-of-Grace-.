@@ -17,7 +17,7 @@ const goals=[
 ];
 
 export default function About(){return <>
-  <PageHero eyebrow="About us" title="Restoring lives. Renewing hope. Transforming communities." description="Loving Hand of Grace Rehabilitation Center is committed to compassionate, holistic and professional rehabilitation for individuals and families affected by addiction and other life challenges."/>
+  <PageHero backgroundImage="/images/about/counselling-space.webp" eyebrow="About us" title="Restoring lives. Renewing hope. Transforming communities." description="Loving Hand of Grace Rehabilitation Center is committed to compassionate, holistic and professional rehabilitation for individuals and families affected by addiction and other life challenges."/>
 
   <section className="section"><div className="container-page grid gap-7 lg:grid-cols-2">
     <article className="rounded-[2rem] border border-grace-100 bg-grace-50 p-8 sm:p-10"><p className="eyebrow">Our Vision</p><h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">A leading centre of excellence in rehabilitation and recovery.</h2><p className="mt-5 leading-8 text-slate-700">Where individuals affected by addiction and life challenges find healing, regain their dignity, discover purpose, and are empowered to build healthy, productive and meaningful lives.</p></article>

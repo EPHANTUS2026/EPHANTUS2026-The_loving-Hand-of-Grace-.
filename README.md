@@ -58,3 +58,5 @@ See `GRACEFLOW_AUTOMATION_ENGINE.md` and apply `supabase/migrations/005_graceflo
 ## Latest production-hardening phase
 
 Apply `supabase/migrations/007_production_hardening.sql` after migration 006. This phase adds the secure GraceFlow scheduler, notification outbox, connector health, governed Knowledge publishing/expiry, engine-run observability and management health controls. See `PRODUCTION_HARDENING.md` and `BUILD_VERIFICATION_PRODUCTION.md`.
+
+

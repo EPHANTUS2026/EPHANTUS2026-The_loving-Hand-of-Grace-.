@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession, rpc } from '@/lib/supabase-rest';
+import { getSession, dbRpc } from '@/lib/supabase-rest';
 
 const allowedRoles=['counsellor','clinician','clinical_director','doctor','psychologist','admissions','administrator','super_admin'];
 
@@ -17,7 +17,7 @@ export async function POST(req){
     // Bind optimistic concurrency to the request as received; the database revalidates after row lock.
   }
   if(!admissionId||!to||!from) return NextResponse.json({error:'admissionId, from and to are required'},{status:400});
-  const result=await rpc('transition_recovery_journey',{p_admission_id:admissionId,p_to:to,p_expected_from:from,p_reason:String(reason||'Approved workflow transition').slice(0,500)},s.token);
+  const result=await dbRpc('transition_recovery_journey',{p_admission_id:admissionId,p_to:to,p_expected_from:from,p_reason:String(reason||'Approved workflow transition').slice(0,500)},{admin:false,token:s.token});
   if(returnTo)return NextResponse.redirect(new URL(returnTo,req.url),303);
   return NextResponse.json(result);
  }catch(e){

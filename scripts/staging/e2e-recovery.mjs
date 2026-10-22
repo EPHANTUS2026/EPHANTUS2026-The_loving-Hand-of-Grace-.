@@ -1,4 +1,4 @@
-import { appFetch, authToken, expectStatus, restSelect, restUpdate, restInsert, requireEnv, syntheticId } from './lib.mjs';
+import { appFetch, authToken, expectStatus, restSelect, requireEnv, syntheticId } from './lib.mjs';
 
 requireEnv(['STAGING_TEST_PASSWORD']);
 const password = process.env.STAGING_TEST_PASSWORD;
@@ -7,7 +7,9 @@ const prefix = process.env.STAGING_TEST_EMAIL_PREFIX || 'lhg-stage';
 const emailFor = (role) => `${prefix}+${role.replaceAll('_','-')}@${domain}`;
 const tokenFor = async (role) => authToken(emailFor(role), password);
 const form = (obj) => new URLSearchParams(Object.entries(obj).filter(([,v]) => v !== undefined && v !== null).map(([k,v]) => [k,String(v)]));
-const postForm = async (path, token, obj, label) => { const r=await appFetch(path,{token,method:'POST',form:form(obj)}); expectStatus(r,[200,201,302,303,307,308],label); console.log(`✓ ${label}`); return r; };
+const transientStatus=new Set([500,502,503,504]);
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+const postForm = async (path, token, obj, label) => { let r; for(let attempt=1;attempt<=3;attempt++){r=await appFetch(path,{token,method:'POST',form:form(obj)});if(!transientStatus.has(r.res.status))break;if(attempt<3){console.log(`↻ ${label}: transient ${r.res.status}; retrying bounded attempt ${attempt+1}/3`);await sleep(1200*attempt);}} expectStatus(r,[200,201,302,303,307,308],label); console.log(`✓ ${label}`); return r; };
 const transition = async (token, admissionId, from, to, label) => { const r=await appFetch('/api/graceflow/transition',{token,method:'POST',json:{admissionId,from,to,reason:`Synthetic staging E2E: ${label}`}}); expectStatus(r,200,label); console.log(`✓ ${label}`); };
 
 const syntheticName=`Synthetic Recovery Client ${syntheticId('E2E')}`;
@@ -35,7 +37,10 @@ const nextReview=new Date(Date.now()+2*86400000).toISOString().slice(0,16); awai
 await transition(clinicianToken,admission.id,'discharge','aftercare','Discharge → aftercare'); const aftercare=(await restSelect('aftercare_plans',`client_id=eq.${clientId}&select=*&limit=1`))?.[0];
 await postForm('/api/operations/aftercare-review',clinicianToken,{client_id:clientId,aftercare_plan_id:aftercare.id,contact_method:'staging',wellbeing_summary:'Synthetic follow-up completed.',recovery_progress:'Synthetic progress remains on plan.',concerns:'None — synthetic test only.',actions:'Continue synthetic follow-up schedule.',next_review_at:new Date(Date.now()+7*86400000).toISOString().slice(0,16)},'Aftercare review recorded');
 await postForm('/api/operations/aftercare',clinicianToken,{client_id:clientId,discharge_plan_id:discharge?.id,status:'completed',start_date:new Date().toISOString().slice(0,10),cadence:'Synthetic completed cadence',goals_summary:'Synthetic aftercare completed.',next_review_at:''},'Aftercare completed'); await transition(clinicianToken,admission.id,'aftercare','closed','Aftercare → closed');
-let journey=(await restSelect('recovery_journeys',`client_id=eq.${clientId}&select=*`))?.[0]; if(!journey){journey=(await restInsert('recovery_journeys',{client_id:clientId,current_stage:'LONG_TERM_RECOVERY_SUPPORT',assigned_team:[],progress_indicators:{staging_e2e:true},next_actions:[],consent_state:{synthetic:true},aftercare_status:'completed'}))?.[0]; await restInsert('recovery_journey_events',{journey_id:journey.id,from_stage:null,to_stage:'LONG_TERM_RECOVERY_SUPPORT',reason:'Synthetic end-to-end staging verification',metadata:{source:'scripts/staging/e2e-recovery.mjs',admission_reference:reference}});}else await restUpdate('recovery_journeys',`id=eq.${journey.id}`,{current_stage:'LONG_TERM_RECOVERY_SUPPORT',stage_started_at:new Date().toISOString(),aftercare_status:'completed',updated_at:new Date().toISOString()});
+const journey=(await restSelect('recovery_journeys',`client_id=eq.${clientId}&select=*`))?.[0];
+if(journey?.current_stage!=='LONG_TERM_RECOVERY_SUPPORT'||journey?.aftercare_status!=='completed')throw new Error('Application failed to project the completed recovery journey. Certification must never repair application state.');
 const finalAdmission=(await restSelect('admissions',`id=eq.${admission.id}&select=id,reference,stage,client_id`))?.[0]; const workflow=(await restSelect('workflow_instances',`entity_type=eq.admission&entity_id=eq.${admission.id}&select=id,current_state,status`))?.[0]; const audits=await restSelect('audit_log',`entity_id=eq.${admission.id}&select=id,action,created_at&order=created_at.asc`);
 if(finalAdmission?.stage!=='closed')throw new Error(`E2E did not reach closed (stage=${finalAdmission?.stage||'missing'}).`);
+if(workflow?.current_state!=='closed'||workflow?.status!=='completed')throw new Error('Recovery workflow did not close atomically');
+if(!audits?.some(x=>x.action==='graceflow_transition'))throw new Error('Recovery transition audit missing');
 console.log('\nE2E RECOVERY JOURNEY PASSED'); console.log(JSON.stringify({reference,clientId,admission:finalAdmission,workflow,auditEvents:audits?.length||0,synthetic:true},null,2));
