@@ -36,14 +36,6 @@ const team=[
     responsibilities:['Psychological assessment','Individual and appropriate group therapy','Coping and emotional-regulation support','Recovery and relapse-prevention planning']
   },
   {
-    role:'Addiction Counsellor',
-    name:'EDWIN F. NGALA',
-    photo:'/images/team/addiction-counsellor.jpg',
-    docket:'Addiction Recovery Counselling & Reintegration',
-    profile:'Works closely with clients on the practical and behavioural dimensions of recovery, supporting insight, motivation, recovery skills, relapse-prevention planning and preparation for healthier relationships and community life.',
-    responsibilities:['Addiction-focused counselling','Recovery education and goal setting','Relapse-prevention skills','Reintegration and continuing-recovery support']
-  },
-  {
     role:'Psychiatric Nurse',
     name:'BRIDGET KINYA',
     photo:'/images/team/psychiatric-nurse.jpg',
